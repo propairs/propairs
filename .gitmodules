@@ -1,0 +1,9 @@
+[submodule "mergebio"]
+	path = mergebio
+	url = git@github.com:f-krull/pdb-merge-bio.git
+[submodule "pdb-merge-bio"]
+	path = pdb-merge-bio
+	url = git@github.com:f-krull/pdb-merge-bio.git
+[submodule "xtal"]
+	path = xtal
+	url = git@github.com:f-krull/xtal.git

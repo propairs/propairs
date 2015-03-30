@@ -1,0 +1,180 @@
+#!/usr/bin/Rscript
+
+# needs GNU R to be installed
+# http://www.r-project.org/
+# (pkgname 'r-base')
+
+execname <- "myProg"
+
+readCluster <- function(fn, id) {
+   nodes <- read.table(pipe(sprintf("cat %s | gunzip | grep '^cl.node%d ' ", fn, id)))[,-1]
+   ndodr <- read.table(pipe(sprintf("cat %s | gunzip | grep '^cl.order%d ' ", fn, id)))[,-1]
+   steps <- read.table(pipe(sprintf("cat %s | gunzip | grep '^cl.step%d ' ", fn, id)))[,-1]
+   h <- list()
+   class(h) <- "hclust"    
+   h$merge <- matrix(unlist(steps[,c(1,2)]), nc=2, byrow=F)
+   h$height <- steps[,3]
+   h$order <- ndodr[,1]
+   h$labels <- nodes[,1]
+   h
+}
+
+readClusters <- function(fn) {
+   t <- read.table(pipe(sprintf("cat %s | gunzip | grep '^cl.cluster ' ", fn)))[,-c(1,3)]  
+   names(t) <- c("clusterId","size")
+   t
+}
+
+
+if (interactive() == FALSE) {
+   args=(commandArgs(TRUE))
+   if (length(args) < 2) {
+      write("does stuff with {input_file}","")
+      write(sprintf("Usage: %s {input_file} {output_prefix} {Lab}", execname),"")
+      quit()
+   }
+   INFILE=args[1]
+   OUTPREFIX=args[2]
+   LAB=args[3]
+   
+   
+   min_cluster_size <- 3
+   min_cluster_height <- 0.0
+   # read cluster sizes
+   cls <- readClusters(INFILE)
+   
+   if (length(cls[,1]) < 1) {
+      return
+   }
+
+
+   write(sprintf("num clusters: %d", length(cls$size)),"")
+   pdf(sprintf("%sdendrogram_overview.pdf", OUTPREFIX), width=5, height=5)
+   #barplot(sort(cls$size, decreasing=T), log="y", main=sprintf("%d clusters", length(cls$size)), ylab="Cluster sizes")
+   plot(sort(cls$size, decreasing=T), log="xy", ylab="Cluster size", xlab="Cluster index") # , main=sprintf("%d clusters"
+   dev.off()
+
+  
+   length(which(cls$size == 1))
+   
+   pdf(sprintf("%sdendrogram_overview_hist.pdf", OUTPREFIX, width=8, height=8))
+   #hist(log(cls$size), main=sprintf("%d clusters", length(cls$size)), xlab="Cluster size (log)")
+   breaks <- c(0,0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000,10000)
+   h <- hist(log10(cls$size), plot=F)
+   plot(h$mids,h$counts,type="n",
+      xaxt="n", ylab="Frequency", main=sprintf("Cluster sizes of %d clusters", length(cls$size)), xlab="Cluster size (log scale)",
+      bg="lightgrey"
+   )
+   plot(h, add=T, freq=T, col="grey")
+   at <- breaks[1:8]
+   axis(1, at=at, labels=format(10^at[1:8], scientific=F, digits=1, trim=T))
+   dev.off()
+   
+   overview <- NULL
+   
+   # only use big clusters
+   cls <- cls[which(cls$size >= 3),]
+   for (i in seq_len(nrow(cls))) {
+   
+      h <- readCluster(INFILE, cls$clusterId[i])
+      
+      size <- cls$size[i]
+      dist <- max(h$height)
+      overview <- rbind(overview, c(cls$clusterId[i], size, dist))
+      
+      if (dist >= min_cluster_height & size > min_cluster_size) {
+         pdf(sprintf("%sdendrogram_%d_%d_%4.2f.pdf", OUTPREFIX, cls$clusterId[i], size, dist), width=0.1798561*length(h$labels)+2)
+         plot(h, main=sprintf("Cluster %d (%s)", cls$clusterId[i], LAB), ylab="Distance")
+         dev.off()
+      }
+   }
+   
+   # write out table with cluster sizes
+   colnames(overview) <- c("clusterID", "size", "maxDist")
+   write.table(overview, sprintf("%sdendrogram_overview.txt", OUTPREFIX), row.names=F)
+   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if (F) {
+#install.packages("mvtnorm_0.9-9994.tar.gz", type="source")
+#install.packages("multcomp_1.2-15.tar.gz", type="source")
+#install.packages("doBy_4.5-5.tar.gz", type="source")
+order.a.tree <- function(tree) {
+   num.of.leafs <- length(tree$order)
+   matrix.to.order <- NULL
+   for(i in 1:(num.of.leafs)) {
+      matrix.to.order <- cbind(matrix.to.order ,  cutree(tree, k = i))
+   }
+   id <- seq_len(dim(matrix.to.order)[1])
+   matrix.to.order <- data.frame(id, matrix.to.order)
+   print(matrix.to.order)
+   require(doBy) # The ordering engine of this function is based on orderByfrom the doBy package
+   ordered.matrix <- eval(parse(text = paste("orderBy(~",paste(colnames(matrix.to.order)[-1], collapse = "+"),",data=matrix.to.order)")))
+   print(ordered.matrix)
+   tree$order <- (ordered.matrix$id)
+   return(tree)
+} 
+
+write("0","")
+
+nodes <- read.table(pipe(sprintf("cat %s | grep ^cl.node", fn)))[,-1]
+order <- read.table(pipe(sprintf("cat %s | grep ^cl.order", fn)))[,-1]
+steps <- read.table(pipe(sprintf("cat %s | grep ^cl.step", fn)))[,-1]
+
+write("1","")
+
+h <- list()
+pdf("out1.pdf" ,width=0.1798561*nrow(nodes)+2)
+class(h) <- "hclust"    
+h$merge <- matrix(unlist(steps[,c(1,2)]), nc=2, byrow=F)
+h$height <- steps[,3]
+h$order <- 1:nrow(nodes)
+h$labels <- nodes[,2]
+
+
+write("2","")
+
+#h <- order.a.tree(h)
+
+write("3","")
+
+plot(h)
+
+write("4","")
+
+
+   d <- as.dendrogram(h)
+   pdf("out1.pdf" ,width=0.1798561*nrow(nodes)+2)
+   plot(d)
+   dev.off()
+   pdf(sprintf("out2.pdf"),width=12, height=9)
+   plot(d, labels=FALSE)
+   dev.off()
+}
+
+
+

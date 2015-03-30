@@ -1,0 +1,18 @@
+# Adenosyl homocysteine like
+AN6 SAH
+
+# Allosamidin like (unter vorbehalt)
+AO3 ANP
+
+# ATP like
+ATP VMX
+
+# HEM like
+HEM ZNH
+
+# 2+Ions (Magnesium like)
+MN MG CO CA FE NI SR ZN CD HG
+
+
+
+
