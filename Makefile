@@ -16,4 +16,5 @@ clean:
 
 
 
-
+distclean: clean
+	$(MAKE) -C xtal distclean
