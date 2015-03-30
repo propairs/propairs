@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TESTSET=
+TESTSET=1
 
 #-- define arguments -----------
 
@@ -52,25 +52,36 @@ export PDBDATADIR=${OUTPUT}/pdb_dst/
 
 #-- get pdb files -----------
 
-EXCLUDEPDB=
-EXCLUDEBIO=
-if [ "${TESTSET}" != "" ]; then
-EXCLUDEPDB="--include-from="$PROPAIRSROOT"/testdata/pdb_DB4set.txt    --include='*/' --exclude='*'"
-EXCLUDEBIO="--include-from="$PROPAIRSROOT"/testdata/pdbbio_DB4set.txt --include='*/' --exclude='*'"
-fi
 
 if [ ! -e ./pdb_done ]; then
+echo
+echo "${EXCLUDEPDB}"
+echo
 rm -f pdb_bio_done
-rsync -av --delete --progress --port=33444 \
-rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
-touch pdb_done
+   if [ "${TESTSET}" != "" ]; then
+      rsync -av --delete --progress --port=33444 \
+      --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
+      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
+      touch pdb_done
+   else 
+      rsync -av --delete --progress --port=33444 \
+      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
+      touch pdb_done
+   fi
 fi
 
 if [ -e pdb_done -a ! -e ./pdb_bio_done ]; then
 rm -f pdb_bio_merged_done
-rsync -av --delete --progress --port=33444 \
-rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
-touch pdb_bio_done
+   if [ "${TESTSET}" != "" ]; then
+      rsync -av --delete --progress --port=33444 \
+      --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
+      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
+      touch pdb_bio_done
+   else
+      rsync -av --delete --progress --port=33444 \
+      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
+      touch pdb_bio_done   
+   fi
 fi
 
 if [ -e pdb_bio_done -a ! -e pdb_bio_merged_done ]; then
