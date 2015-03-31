@@ -22,11 +22,13 @@ RUN echo "local all  postgres  peer " >  /etc/postgresql/9.3/main/pg_hba.conf &&
    sudo -u postgres createuser -s ppiuser && \
    sudo -u postgres createdb -O ppiuser ppidb1
 
+
 # biopython dependencies
 RUN apt-get update && apt-get install -y \
    python2.7 \
    python2.7-dev \
    python2.7-numpy
+
 
 # xtal dependencies
 RUN apt-get update && apt-get install -y \ 
@@ -38,21 +40,14 @@ RUN apt-get update && apt-get install -y \
 
 # setup propairs programm
 COPY . /opt/propairs
-RUN cd /opt/propairs && make
+RUN cd /opt/propairs && make -j 5
 ENV PROPAIRSROOT /opt/propairs/
 
 
 # path where to write data set and temp files
 VOLUME ["/data/"]
 
-RUN groupadd -r swuser -g 433 && \
-   useradd -u 431 -r -g ppuser -d /home/ppuser -s /sbin/nologin -c "ProPairs user" ppuser && \
-   chown -R ppuser:ppuser /home/ppuser
 
-USER ppuser
-
-# create data set    
-# (TODO: find clean way to pass aruments)
-# CMD ["/bin/bash", "-c" ,"/etc/init.d/postgresql start && /opt/propairs/start.sh /opt/propairs/ /data/"]
-ENTRYPOINT ["/bin/bash", "-c" ,"/etc/init.d/postgresql start && /opt/propairs/start.sh /opt/propairs/ /data/"]
+# create propairs data set    
+ENTRYPOINT ["/opt/propairs/dockerentry.sh"]
 
