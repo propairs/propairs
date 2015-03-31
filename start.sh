@@ -1,6 +1,7 @@
 #!/bin/bash
 
 TESTSET=1
+DOCKER=1
 
 #-- define arguments -----------
 
@@ -38,6 +39,7 @@ export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d
 
 if [ ! -d "${PYTHONPATH}" ]; then
    echo "PYTHONPATH=$PYTHONPATH not found"
+   echo "Did you run make?"
    exit 1
 fi
 
@@ -49,6 +51,11 @@ fi
 
 export PDBDATADIR=${OUTPUT}/pdb_dst/
 
+#-- set database -----------
+
+if [ "$DOCKER" != "" ]; then
+   /etc/init.d/postgresql start   
+fi
 
 #-- get pdb files -----------
 
