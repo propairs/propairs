@@ -44,7 +44,7 @@ RUN cd /opt/propairs && make -j 5
 ENV PROPAIRSROOT /opt/propairs/
 
 
-# path where to write data set and temp files
+# path where to write dataset and temp files
 VOLUME ["/data/"]
 
 

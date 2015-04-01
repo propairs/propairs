@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 usage()
 {
 cat << EOF
-usage: $0 -i <PATH> -o <PATH> [-t <0/1>]
+usage: $0 -i <PATH> -o <PATH> [-t <0|1>]
 
 This script generates the ProPairs dataset
 
@@ -11,59 +11,59 @@ OPTIONS:
    -h           show this message
    -i <PATH>    path to directoy containing this script
    -o <PATH>    path to output directory
-   -t <0/1>     0: full search; 1: test search (default)
+   -t <0|1>     0: full search; 1: test search (default)
 EOF
+exit 1;
 }
 
 
 #-- parse arguments -----------
 
-echo $*
-
-PROPAIRSROOT=
-OUTPUT=
-TESTSET=1
-while getopts “hi:o:t:” OPTION
-do
-     case $OPTION in
-         h)
-             usage
-             exit 1
-             ;;
-         o)
-             OUTPUT="${OPTARG}"
-             shift
-             ;;
-         i)
-             PROPAIRSROOT="${OPTARG}"
-             shift
-             ;;             
-         t)
-             TESTSET="${OPTARG}"
-             shift
-             ;;                   
-         ?)
-             usage
-             exit
-             ;;
-     esac
+declare PPROOT=
+declare OUTPUT=
+declare TESTSET=1
+while getopts ":t:p:o:i:" o; do
+    case "${o}" in
+        t)
+            TESTSET=${OPTARG}
+            ;;
+        o)
+            OUTPUT=${OPTARG}
+            ;;
+        i)
+            PPROOT=${OPTARG}
+            ;;            
+        *)
+            usage
+            ;;
+    esac
 done
-shift $(( OPTIND-1 ))
+shift $((OPTIND-1))
 
 
 #-- check arguments -----------
 
+printf "OUTPUT:       %s\n" "$OUTPUT"
+printf "TESTSET:      %s\n" "$TESTSET"
+printf "PPROOT:       %s\n" "$PPROOT"
+printf "PROPAIRSROOT: %s\n" "$PROPAIRSROOT"
+
+# set PROPAIRSROOT if defined by argument
+if [ "${PPROOT}" != "" ]; then
+   export PROPAIRSROOT=${PPROOT}
+fi
+
 # test OUTPUT directory
 mkdir -p "${OUTPUT}"
 if ! cd "${OUTPUT}"; then
-   echo "unable to change directory to ${OUTPUT}"
-   exit 1
+   printf "error: unable to change directory to ${OUTPUT}.\n\n"
+   usage
 fi
 
 # test PROPAIRSROOT directory
 if [ ! -e "${PROPAIRSROOT}"/start.sh ]; then
-   echo "start.sh is not found in directory PROPAIRSROOT(${PROPAIRSROOT}). Maybe the path is not absolute."
-   exit 1
+   printf "error: start.sh is not found in directory PROPAIRSROOT(\"${PROPAIRSROOT}\"). Maybe the path is not absolute.\n\n"
+   usage
 fi
 
 
@@ -72,11 +72,13 @@ fi
 export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d`
 
 if [ ! -d "${PYTHONPATH}" ]; then
-   echo "PYTHONPATH=$PYTHONPATH not found"
-   echo "Did you run make?"
+   printf "error: PYTHONPATH=$PYTHONPATH not found\n"
+   printf "       Did you run make?\n"
    exit 1
 fi
 
+# TODO: merge_bio_folder.py has high memory requirements
+#       if we lower them, we can use more cores per default
 NUMCPU=`cat /proc/cpuinfo | grep "^processor" | wc -l`
 NUMCPU=$(( NUMCPU / 4 ))
 if [ $NUMCPU -lt 1 ]; then
@@ -90,9 +92,6 @@ export PDBDATADIR=${OUTPUT}/pdb_dst/
 
 
 if [ ! -e ./pdb_done ]; then
-echo
-echo "${EXCLUDEPDB}"
-echo
 rm -f pdb_bio_done
    if [ "${TESTSET}" != "" ]; then
       rsync -av --delete --progress --port=33444 \
