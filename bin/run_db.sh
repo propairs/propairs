@@ -225,7 +225,7 @@ function runsearch {
          rm -f ${TABSIM}_done   
          printf "0 getting PDB codes of all files\n" && \
          printf "  " && date && \
-         nice -n +5 find  ${PDBDIR} -name '*.pdb' -exec basename {} .pdb \; | sort > ${PDBCODES} && \
+         find  ${PDBDIR} -name '*.pdb' -exec basename {} .pdb \; | sort > ${PDBCODES} && \
          printf "  done " && date && \
          touch ${PDBCODES}_done
       fi
