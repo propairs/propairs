@@ -137,7 +137,12 @@ fi
 
 #-- generate set -----------
 
+declare TESTARGS=
+if [ "${TESTSET}" != "" ]; then
+   TESTARGS="-p test"
+fi
+
 if [ -e pdb_dst_done ]; then
-   ${PROPAIRSROOT}/bin/run_db.sh -f
+   ${PROPAIRSROOT}/bin/run_db.sh -f $TESTARGS
 fi
 
