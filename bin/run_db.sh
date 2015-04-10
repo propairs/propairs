@@ -67,10 +67,6 @@ trap "{ cd - ; exit 255; }" SIGINT
 TMPDIR=./
 TMPDIR2=./
 
-if [ -e /public/scratch/ ]; then 
-  mkdir -p /public/scratch/fkrull/ppitmp/
-  TMPDIR2=/public/scratch/fkrull/ppitmp/
-fi
 
 mkdir -p ${TMPDIR2}/${NAME}/
 TMPDIR2=${TMPDIR2}/${NAME}/
