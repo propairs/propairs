@@ -225,7 +225,7 @@ INPUT=$1
 
 # get cluster for given ID
 if [ "${KEY_CLUSTID}" != "" ]; then
-   source ${PROPARISROOT}/bin/columns_def.sh
+   source ${PROPAIRSROOT}/config/columns_def.sh
    source ${PROPAIRSROOT}/bin/helper.sh
    TMPFILE1=`mktemp`_tmpfile1
    TMPFILE2=`mktemp`_tmpfile2
