@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ${PROPAIRSROOT}/config/tables.def
+source ${PROPAIRSROOT}/config/tables_def.sh
 
 
 _DEBUG=0

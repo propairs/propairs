@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source ${PROPAIRSROOT}/config/global.conf
-source ${PROPAIRSROOT}/config/tables.def
+source ${PROPAIRSROOT}/config/tables_def.sh
 
 
 INPCON=`readlink -e "$1"`
