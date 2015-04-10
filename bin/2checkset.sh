@@ -1,7 +1,7 @@
 #!/bin/bash
 # Argument = -c
 
-source ${PROPAIRSROOT}/config/columns.def
+source ${PROPAIRSROOT}/config/columns_def.sh
 
 
 

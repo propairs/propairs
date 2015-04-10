@@ -101,7 +101,7 @@ ulimit -c unlimited
 #------------------------------------------------------------------------------
 
 function formatTable {
-   source ${PROPAIRSROOT}/config/columns.def
+   source ${PROPAIRSROOT}/config/columns_def.sh
    local MTABLEFILE=$1
    local MNUMCOLS=$2
    

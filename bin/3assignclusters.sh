@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ${PROPAIRSROOT}/config/columns.def
+source ${PROPAIRSROOT}/config/columns_def.sh
 
 
 # how to handle interruptions?

@@ -54,7 +54,7 @@ shift $(( OPTIND-1 ))
 
 #PS4='$(date "+%s.%N ($LINENO) + ")'
 
-source ${PROPAIRSROOT}/config/columns.def
+source ${PROPAIRSROOT}/config/columns_def.sh
 source ${PROPAIRSROOT}/config/global.conf
 
 
@@ -225,8 +225,8 @@ INPUT=$1
 
 # get cluster for given ID
 if [ "${KEY_CLUSTID}" != "" ]; then
-   source ${ROOTDIR}/res/ppidbscripts/columns.def
-   source ${ROOTDIR}/res/ppidbscripts/helper.sh
+   source ${PROPARISROOT}/bin/columns_def.sh
+   source ${PROPAIRSROOT}/bin/helper.sh
    TMPFILE1=`mktemp`_tmpfile1
    TMPFILE2=`mktemp`_tmpfile2
    TMPFILE3=`mktemp`_tmpfile3
