@@ -157,7 +157,11 @@ def u2Show():
    cofShow(cofuo2, cofsuo2, colcofu_other)   
 def ray(title):
    if cfgPngPrefix != "":
-      cmd.png(cfgPngPrefix + "_p" + title + ".png", width=cfgImgWidth)
+      cmd.viewport(cfgImgWidth, cfgImgWidth*3/4)
+      cmd.ray(cfgImgWidth, cfgImgWidth*3/4)
+      cmd.mpng(cfgPngPrefix + "_p" + title + ".png", 1, 1)
+      cmd.mplay()
+      #cmd.png(cfgPngPrefix + "_p" + title + ".png", width=cfgImgWidth)
    if cfgVrmlPrefix != "":
       cmd.save(cfgVrmlPrefix + "_p" + title + ".wrl")
 
