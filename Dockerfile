@@ -5,7 +5,6 @@ FROM ubuntu:14.04
 RUN apt-get update && apt-get install -y \ 
    bsdmainutils \
    make \
-   r-base \
    rsync \
    wget
 # postgres

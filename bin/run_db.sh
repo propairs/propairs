@@ -180,8 +180,6 @@ function 3clusterinterfaces {
    # write out interface score vs. sequence ID
    cat ${MLOGFILE} | grep "^intsc" | gzip - > ${MLOGFILE}_intscore.gz
    cat ${MLOGFILE} | gzip > ${MLOGFILEGZ}
-   mkdir -p ${MLOGFILE}-dend/
-   ${PROPAIRSROOT}/bin/3dendrogram.Rscript ${MLOGFILEGZ} ${MLOGFILE}-dend/${NAME} ${NAME}
    printf "  %s unique interfaces\n" "`cat ${MLOGFILE}_interfaces | wc -l`"
    printf "  %s interface clusters\n" "`cat  ${MLOGFILE}_cluster | grep "^cl cluster" | wc -l`"
    printf "  %s alignments assigned to clusters\n" "`tail -n +2 ${MOUTFILE} | wc -l`"
