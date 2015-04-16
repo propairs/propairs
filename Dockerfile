@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y \ 
    g++-4.8 \
    make \
-   r-base \
    wget
 
 
