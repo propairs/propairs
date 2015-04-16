@@ -238,15 +238,15 @@ if [ "${KEY_CLUSTID}" != "" ]; then
    
    # select relevant fields
    paste -d " " \
-    <(${ROOTDIR}/res/ppidbscripts/getCol.sh -c ${SEEDPB} ${TMPFILE1}) \
-    <(${ROOTDIR}/res/ppidbscripts/getCol.sh -c ${CBI1} ${TMPFILE1}) \
-    <(${ROOTDIR}/res/ppidbscripts/getCol.sh -c ${CBI2} ${TMPFILE1}) \
-    <(${ROOTDIR}/res/ppidbscripts/getCol.sh -c ${CLUSMEDDIST} ${TMPFILE1}) \
+    <(${PROPAIRSROOT}/bin/getCol.sh -c ${SEEDPB} ${TMPFILE1}) \
+    <(${PROPAIRSROOT}/bin/getCol.sh -c ${CBI1} ${TMPFILE1}) \
+    <(${PROPAIRSROOT}/bin/getCol.sh -c ${CBI2} ${TMPFILE1}) \
+    <(${PROPAIRSROOT}/bin/getCol.sh -c ${CLUSMEDDIST} ${TMPFILE1}) \
      | uniq | column -t > ${TMPFILE3}
    
    # add derived field
    echo "TYPE" > ${TMPFILE2}
-   getHeader "`${ROOTDIR}/res/ppidbscripts/getCol.sh -c 1 ${TMPFILE3} | tail -n +2`" >> ${TMPFILE2}
+   getHeader "`${PROPAIRSROOT}/bin/getCol.sh -c 1 ${TMPFILE3} | tail -n +2`" >> ${TMPFILE2}
      
    # put together  
    echo "COMPLEX B1 B2   MEDOID_DIST TYPE"

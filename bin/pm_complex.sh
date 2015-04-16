@@ -224,7 +224,7 @@ pu1rot=${U1ROTMATRIX}
 pu2rot=${U2ROTMATRIX}
 
 cfgHasU2 = ${HAS_U2}
-cfgCofIgnorelist = "$ROOTDIR/res/ppidbscripts/cof_ignorelist.txt"
+cfgCofIgnorelist = "${PROPAIRSROOT}/config/cof_ignorelist.txt"
 cfgCofIntThres = 5.5
 cfgCofB1b2IntThres = 10.0
 cfgPngPrefix = "${OUTPREFIX}"
@@ -238,12 +238,12 @@ u1pdb="u1pdb"
 u2pdb="u2pdb"
 
 
-cmd.do("run $ROOTDIR/res/ppidbscripts/pm_complex.py")
+cmd.do("run ${PROPAIRSROOT}/bin/pm_complex.py")
 EOF
 
 ### set pymol path
 
-if [ "$PYMOLBIN" == ""]; then
+if [ "$PYMOLBIN" == "" ]; then
    PMCMD=$(which pymol)
 fi
 PMCMD="${PYMOLBIN} $PMARGS"

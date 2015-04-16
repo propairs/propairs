@@ -38,6 +38,12 @@ RUN apt-get update && apt-get install -y \
    wget
 
 
+# web-data dependencies
+RUN apt-get update && apt-get install -y \ 
+    imagemagick \
+    pymol 
+
+
 # setup propairs programm
 COPY . /opt/propairs
 RUN cd /opt/propairs && make -j 5
