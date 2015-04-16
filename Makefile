@@ -1,4 +1,4 @@
-BIOPYTHON_VERSION=1.16
+BIOPYTHON_VERSION=1.65
 
 all: biopython
 	$(MAKE) -C xtal
