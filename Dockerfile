@@ -33,7 +33,8 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y \ 
    g++-4.8 \
    make \
-   wget
+   wget &&\
+   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
 
 
 # web-data dependencies
