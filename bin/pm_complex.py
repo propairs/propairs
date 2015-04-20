@@ -155,13 +155,13 @@ def u2Show():
    cmd.show("cartoon", su2)
    cofShow(cofu2, cofsu2, colcofu_matched)
    cofShow(cofuo2, cofsuo2, colcofu_other)   
+def hideStuff():
+   cmd.hide("everything")
 def ray(title):
    if cfgPngPrefix != "":
       cmd.viewport(cfgImgWidth, cfgImgWidth*3/4)
       cmd.ray(cfgImgWidth, cfgImgWidth*3/4)
-      cmd.mpng(cfgPngPrefix + "_p" + title + ".png", 1, 1)
-      cmd.mplay()
-      #cmd.png(cfgPngPrefix + "_p" + title + ".png", width=cfgImgWidth)
+      cmd.do("png " + cfgPngPrefix + "_p" + title + ".png")
    if cfgVrmlPrefix != "":
       cmd.save(cfgVrmlPrefix + "_p" + title + ".wrl")
 
@@ -207,21 +207,23 @@ cmd.orient("sb1 or sb2")
 cmd.zoom("sb1 or sb2", -10, 0, 1)
 
 
-def hideStuff():
-   cmd.hide("everything")
 
 
 
-# patch for interesting example from paper
+# patch for interesting example from paper (not really needed)
 if ppdbidB=="1bgx1":
    cmd.turn("y", 192)
 
 
+# set number of rotations
+numsteps = 1
+if cfgImgRotate == True:
+   numsteps = 30
 
-numsteps = 30
+
+# create images
 stepangle = 360/numsteps
 for i in range(1, numsteps+1):
-   #show
    hideStuff()
    #b1Show()
    #b2Show()
@@ -321,7 +323,6 @@ for i in range(1, numsteps+1):
    cmd.turn("y", stepangle)
 
 
-#cofShow(cofbu, colcofb_unmatched)
 
 # PDB out
 if cfgPdbPrefix != "":

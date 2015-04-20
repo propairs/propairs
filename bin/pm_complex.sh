@@ -15,7 +15,7 @@ OPTIONS:
    -h            Show this message
    -d            Data is shown in debug mode 
    -f <path>     Set filename for png output
-   -r            Enable nice rendering
+   -r            Write rotated iamges
    -w <width>    Set width for png output
    -v <path>     Set filename for VRML output
    -o <path>     Write out PDBs
@@ -23,7 +23,7 @@ EOF
 }
 
 declare PNGWIDTH="400"
-declare PNGRENDER="False"
+declare PNGROTATE="False"
 declare OUTPREFIX=""
 declare DEBUG="False"
 declare PDBOUT=""
@@ -44,7 +44,7 @@ do
              PNGWIDTH="${OPTARG}"
              ;;
          r)
-             PNGRENDER="True"
+             PNGROTATE="True"
              ;;
          d)
              DEBUG="True"
@@ -229,7 +229,7 @@ cfgCofIntThres = 5.5
 cfgCofB1b2IntThres = 10.0
 cfgPngPrefix = "${OUTPREFIX}"
 cfgImgWidth = ${PNGWIDTH}
-cfgImgRender = ${PNGRENDER}
+cfgImgRotate = ${PNGROTATE}
 cfgPdbPrefix = "${PDBOUT}"
 cfgVrmlPrefix = "${WRLOUT}"
 
