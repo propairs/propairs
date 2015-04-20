@@ -433,7 +433,7 @@ echo "{
     \"cluster\" : \"`${PROPAIRSROOT}/bin/4mergepartners.sh -m ${RCLUSID} ${INPUTCLUS} | tr -d '"' | sed 's/$/\\\n/g' | tr -d '\n'`\",
 "
    echo " \"aln1\" :"
-   ${XTALDIR}/src/xtalcompunbound/xtalcompunboun -debug=true $PDBDATADIR/${cols1[$SEEDPB-1]}.pdb ${cols1[$SEEDCB1-1]} ${cols1[$SEEDCB2-1]} $PDBDATADIR/${cols1[$SEEDPU-1]}.pdb ${cols1[$SEEDCU1-1]} 2>&1 | grep intaln | sed "s/.*intaln//"
+   ${XTALDIR}/src/xtalcompunbound/xtalcompunbound -debug=true $PDBDATADIR/${cols1[$SEEDPB-1]}.pdb ${cols1[$SEEDCB1-1]} ${cols1[$SEEDCB2-1]} $PDBDATADIR/${cols1[$SEEDPU-1]}.pdb ${cols1[$SEEDCU1-1]} 2>&1 | grep intaln | sed "s/.*intaln//"
 
 
    if [ "$INDEX2" != "" ]; then
@@ -501,6 +501,7 @@ while read ROWPAIR; do
 done < <(echo "$ROWPAIRS")
 printf "}\n" >> $OUTFILE
 
+
 # write detail info
 i=0;
 while read ROWPAIR; do
@@ -519,7 +520,37 @@ while read ROWPAIR; do
    writeJsonData ${INPUT} $INPUTCLUS $INDEX1 $INDEX2 > ${INFODIR}/$INDEX1.json
    # write pdb and images
    ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
-   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -o ${DSTDIR}/pdb/${INDEX1} -w 400 -r -f ${INFODIR}/img $ARGS
+   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -o ${DSTDIR}/pdb/${INDEX1} -w 400 -f ${INFODIR}/img $ARGS
+   # full first
+   (
+      find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
+   )
+   # preview 
+   convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
+   # remove pngs
+   (
+      find ${INFODIR}/ -name '*.png' -exec rm {} \;
+   )
+done < <(echo "$ROWPAIRS")
+
+
+# write rotated images
+i=0;
+while read ROWPAIR; do
+   echo "writing info $i"
+   # split rowpair to two seedidx at ","
+   IFS=","
+   read -a SIDX < <(echo "$ROWPAIR")
+   unset IFS
+   INDEX1=${SIDX[0]}
+   INDEX2=${SIDX[1]}
+
+   INFODIR=${DSTDIR}/info/$INDEX1
+   mkdir -p $INFODIR
+   i=$((i+1))
+   # write images
+   ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
+   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -w 400 -r -f ${INFODIR}/img $ARGS
    # full
    (
       find ${INFODIR} -name '*.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 60 {} \;
