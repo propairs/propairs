@@ -7,13 +7,13 @@ source ${PROPAIRSROOT}/config/columns_def.sh
 usage()
 {
 cat << EOF
-usage: $0 options <aligned> 
+usage: $0 [options] <table> 
 
 OPTIONS:
    -h      Show this message
    -l      List columns
    -c      column index
-   -n      colum name
+   -n      column name
    -s      skip header
 EOF
 }
