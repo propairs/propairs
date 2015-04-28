@@ -114,7 +114,7 @@ def cofSelectStr(pdb, cofactorlist):
    if len(cofactorlist) > 0:
       retstr = '%s and (' %pdb
       for i,cofactor in enumerate(cofactorlist):
-        retstr += '(chain %s and resid %i)'%cofactor 
+        retstr += '(chain %s and resid %s)'%cofactor 
         if len(cofactorlist) > 1 and i < len(cofactorlist)-1:
           retstr += ' or '
       retstr += ')'

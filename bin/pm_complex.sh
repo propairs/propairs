@@ -17,7 +17,7 @@ OPTIONS:
    -f <path>     Set filename for png output
    -r            Write rotated iamges
    -w <width>    Set width for png output
-   -v <path>     Set filename for VRML output
+   -v <path>     Set filename for VRML output (not supported yet)
    -o <path>     Write out PDBs
 EOF
 }
@@ -114,17 +114,16 @@ while read -d ';' COFPAIR; do
   IFS=',' read -ra FIELDS <<< "${COFPAIR}"  
   # has match ?
   if [ "${FIELDS[1]}" == "" ]; then
-    LISTB2+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")"
+    LISTB2+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^:\([^(]*\)(.*/:'\1'/" | tr ":" ","`")"
   elif [ "${FIELDS[0]}" != "" -a "${FIELDS[1]}" != "" ]; then
-    LISTB1+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")"
-    LISTU1+=",(""'"`echo ${FIELDS[1]:0:1}`"'"`echo ${FIELDS[1]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")" 
+    LISTB1+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^:\([^(]*\)(.*/:'\1'/" | tr ":" ","`")"
+    LISTU1+=",(""'"`echo ${FIELDS[1]:0:1}`"'"`echo ${FIELDS[1]#?} | sed "s/^:\([^(]*\)(.*/:'\1'/" | tr ":" ","`")"
   else 
-    #LISTU1+=",(""'"`echo ${FIELDS[1]:0:1}`"'"`echo ${FIELDS[1]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")" 
     :
   fi
   # add bound confactor - no matter what
   if [ "${FIELDS[0]}" != "" ]; then
-     LISTBALL+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")"
+     LISTBALL+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^:\([^(]*\)(.*/:'\1'/" | tr ":" ","`")"
   fi
   
 done < <(echo  ${U1COF})
@@ -169,10 +168,9 @@ while read -d ';' COFPAIR; do
   if [ "${FIELDS[1]}" == "" ]; then
     :
   elif [ "${FIELDS[0]}" != "" -a "${FIELDS[1]}" != "" ]; then
-    LISTB2+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")"
-    LISTU2+=",(""'"`echo ${FIELDS[1]:0:1}`"'"`echo ${FIELDS[1]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")"
+    LISTB2+=",(""'"`echo ${FIELDS[0]:0:1}`"'"`echo ${FIELDS[0]#?} | sed "s/^:\([^(]*\)(.*/:'\1'/" | tr ":" ","`")"
+    LISTU2+=",(""'"`echo ${FIELDS[1]:0:1}`"'"`echo ${FIELDS[1]#?} | sed "s/^:\([^(]*\)(.*/:'\1'/" | tr ":" ","`")"
   else
-    #LISTU2+=",(""'"`echo ${FIELDS[1]:0:1}`"'"`echo ${FIELDS[1]#?} | sed "s/^\([^(]*\)(.*/\1/" | tr ":" ","`")"
     :
   fi
 done < <(echo  ${U2COF})
@@ -240,6 +238,7 @@ u2pdb="u2pdb"
 
 cmd.do("run ${PROPAIRSROOT}/bin/pm_complex.py")
 EOF
+
 
 ### set pymol path
 
