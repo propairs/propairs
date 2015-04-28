@@ -21,8 +21,8 @@ BNUMGAPS=11        # number of gaps at residues of both interfaces
 BNUMI1GAPS=12      # number of gaps at residues of interface CBI1
 BNUMI2GAPS=13      # number of gaps at residues of interface CBI2
 
-BNUMI1CA=14        # number of CA atoms of interface CBI1
-BNUMI2CA=15        # number of CA atoms of interface CBI2
+BNUMI1CA=14        # number of C-alpha atoms of interface CBI1
+BNUMI2CA=15        # number of C-alpha atoms of interface CBI2
 
 BNUMNONICHAINS=16  # number of non-interface chains (#CB1+#CB2X)
 BNUMCOF=17         # number of cofactors found in interface
@@ -41,7 +41,8 @@ UNUMUNMATCHEDCOF=25  # number of cofactors in SEEDPU not matched to any in SEEDP
 UIRMSD=26            # interface RMSD of CU1 superimposed to CB1
 UNUMCLASHES=27       # number of C-alpha clashes of CU1 with CB2X
 
-CU1=28               # chains of SEEDPU matched with CB1 + appended chains (use only first #CB1 chains for alignment)
+CU1=28               # chains of SEEDPU matched with CB1 + appended chains 
+                     #          (use only first #CB1 chains for alignment)
 
 ROT1=29              # transformation matrix to superimpose CU1 to CB1 - begin
 ROT2=30
@@ -58,8 +59,18 @@ ROT12=40             # transformation matrix to superimpose CU1 to CB1 - end
 
 ### cofactor
 
-COF=41  # CBI1-cofactors ";"-separated and (if found) their CU1 matching ","-separated 
-        #(i.e. ";cofB1_1,cofU1_1;cofB1_2,;cofB3_1,cofU2_1;"...)
+COF=41 # A ";"-separated list of cofactor that are found in the interface of 
+       #     CBI1:CBI2 (XXX,) or in the interface region of CU1 (,XXX).
+       #     Assignments of bound-unbound are denoted ","-separated (XXX,XXX).
+       #
+       #  Example: ";D:304(FAD),B:304(FAD);D:99(FES),;,B:305(NAP);"
+       #  "D:304(FAD),B:304(FAD)" - FAD (Flavin adenine dinucleotide) is 
+       #                            found in the interface of CB1:CB2 and 
+       #                            is assigned to FAD in the unbound structure
+       #             "D:99(FES)," - FES ([Fe2S2] cluster) is found in the 
+       #                            interface of CB1:CB2 and is not assigned
+       #            ",B:305(NAP)" - NAP (NADP) is found in the interface region
+       #                            of the unbound structure and is not assigned
 
 ### cluster
 
