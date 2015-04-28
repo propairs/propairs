@@ -568,6 +568,6 @@ while read ROWPAIR; do
 done < <(echo "$ROWPAIRS")
 
 
-tar czf ${DSTDIR}.tar.gz ${DSTDIR}
+
 
 
