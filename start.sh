@@ -91,51 +91,64 @@ export PDBDATADIR=${OUTPUT}/pdb_dst/
 #-- get pdb files -----------
 
 
-if [ ! -e ./pdb_done ]; then
 rm -f pdb_bio_done
-   if [ "${TESTSET}" != "" ]; then
-      rsync -av --delete --progress --port=33444 \
-      --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
-      touch pdb_done
-   else 
-      rsync -av --delete --progress --port=33444 \
-      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
-      touch pdb_done
-   fi
+if [ "${TESTSET}" != "" ]; then
+   rsync -av --delete --progress --port=33444 \
+   --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
+   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
+   touch pdb_done
+else 
+   rsync -av --delete --progress --port=33444 \
+   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
+   touch pdb_done
+fi
+if [ ! -e ./pdb_done ]; then
+   echo "error: pdb_done"
+   exit 1
 fi
 
-if [ -e pdb_done -a ! -e ./pdb_bio_done ]; then
+
 rm -f pdb_bio_merged_done
-   if [ "${TESTSET}" != "" ]; then
-      rsync -av --delete --progress --port=33444 \
-      --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
-      touch pdb_bio_done
-   else
-      rsync -av --delete --progress --port=33444 \
-      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
-      touch pdb_bio_done   
-   fi
+if [ "${TESTSET}" != "" ]; then
+   rsync -av --delete --progress --port=33444 \
+   --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
+   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
+   touch pdb_bio_done
+else
+   rsync -av --delete --progress --port=33444 \
+   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
+   touch pdb_bio_done   
+fi
+if [ ! -e ./pdb_bio_done ]; then
+   echo "error: pdb_bio_done"
+   exit 1
 fi
 
 
 #-- prepare pdb files -----------
 
-if [ -e pdb_bio_done -a ! -e pdb_bio_merged_done ]; then
-rm -f pdb_dst
+
+rm -f pdb_bio_merged
 mkdir -p pdb_bio_merged
 python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU} && \
 touch pdb_bio_merged_done
+if [ ! -e pdb_bio_merged_done ]; then
+   echo "error: pdb_bio_merged_done"
+   exit 1
 fi
 
-if [ -e pdb_bio_merged_done -a ! -e pdb_dst_done ]; then
+rm -f pdb_dst_done
 mkdir -p pdb_dst
 ${PROPAIRSROOT}/bin/pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst/ && \
 touch pdb_dst_done
+if [ ! -e pdb_dst_done ]; then
+   echo "error: pdb_dst_done"
+   exit 1
 fi
 
+
 #-- generate set -----------
+
 
 declare TESTARGS=
 if [ "${TESTSET}" != "" ]; then
