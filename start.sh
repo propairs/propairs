@@ -91,7 +91,7 @@ export PDBDATADIR=${OUTPUT}/pdb_dst/
 #-- get pdb files -----------
 
 
-rm -f pdb_bio_done
+rm -f pdb_done
 if [ "${TESTSET}" != "" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
@@ -108,7 +108,7 @@ if [ ! -e ./pdb_done ]; then
 fi
 
 
-rm -f pdb_bio_merged_done
+rm -f pdb_bio_done
 if [ "${TESTSET}" != "" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
@@ -128,7 +128,8 @@ fi
 #-- prepare pdb files -----------
 
 
-rm -f pdb_bio_merged
+rm -f pdb_bio_merged_done
+rm -Rf pdb_bio_merged
 mkdir -p pdb_bio_merged
 python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU} && \
 touch pdb_bio_merged_done
@@ -138,6 +139,7 @@ if [ ! -e pdb_bio_merged_done ]; then
 fi
 
 rm -f pdb_dst_done
+rm -Rf pdb_dst
 mkdir -p pdb_dst
 ${PROPAIRSROOT}/bin/pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst/ && \
 touch pdb_dst_done
