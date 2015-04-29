@@ -89,6 +89,7 @@ CAND=${PREFIX}"1_cand"
 ALIGNED=${PREFIX}"2_aligned"
 CLUSTERED=${PREFIX}"3_clustered"
 MERGED=${PREFIX}"4_merged"
+WWWDATA=${PREFIX}"5_wwwdata"
 
 
 # enable core dumps 
@@ -315,6 +316,21 @@ function runsearch {
       printf "  --done " && \
       date && \
       touch ${MERGED}_done
+   fi
+   
+   
+   if [ ! -e ${MERGED}_done ]; then
+      exit 1
+   fi
+   if [ ! -e ${WWWDATA}_done ]; then
+      printf "5 creating web data\n" && \
+      printf "  --" && date && \
+      WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" )
+      echo ${WWWNAME} >> www/data/sets.txt && \
+      ${PROPAIRSROOT}bin/makewebdata.sh ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+      printf "  --done " && \
+      date && \
+      touch ${WWWDATA}_done
    fi
 }
 
