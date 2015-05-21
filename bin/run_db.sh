@@ -326,7 +326,7 @@ function runsearch {
       printf "5 creating web data\n" && \
       printf "  --" && date && \
       WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" )
-      echo ${WWWNAME} >> www/data/sets.txt && \
+      mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
       ${PROPAIRSROOT}bin/makewebdata.sh ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
       printf "  --done " && \
       date && \
