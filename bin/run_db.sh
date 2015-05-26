@@ -325,9 +325,10 @@ function runsearch {
    if [ ! -e ${WWWDATA}_done ]; then
       printf "5 creating web data\n" && \
       printf "  --" && date && \
-      WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" )
+      WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" ) && \
+      mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
       mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
-      ${PROPAIRSROOT}bin/makewebdata.sh ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+      ${PROPAIRSROOT}/bin/makewebdata.sh ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
       printf "  --done " && \
       date && \
       touch ${WWWDATA}_done
