@@ -4,3 +4,6 @@
 [submodule "xtal"]
 	path = xtal
 	url = https://github.com/f-krull/xtal.git
+[submodule "propairs-www"]
+	path = propairs-www
+	url = https://github.com/f-krull/propairs-www
