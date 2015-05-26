@@ -1,6 +1,6 @@
 # ProPairs
 
-ProPairs identifies protein docking complexes within Protein Data Bank (PDB). The bound and unbound protein structures can be used as benchmark sets to develop or to test algorithms that predict protein docking geometries. 
+ProPairs identifies protein docking complexes within the Protein Data Bank (PDB). The bound and unbound protein structures can be used as benchmark sets to develop or to test algorithms that predict protein docking geometries. ProPairs:
 
 * Detects protein docking complexes within PDB and presents them as pairs of binding partners
 * Uses only protein structures and biological assembly information from the PDB
