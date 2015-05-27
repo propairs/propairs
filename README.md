@@ -15,7 +15,7 @@ ProPairs identifies protein docking complexes within the Protein Data Bank (PDB)
 
 Get the source code of ProPairs from the GitHub repository:
   ```
-  git clone --recursive https://github.com/f-krull/propairs
+  git clone --recursive https://github.com/propairs/propairs
   ```
 
 We chose Docker to make ProPairs easy to use - regardless of the configuration of your system.
@@ -66,7 +66,7 @@ You can compile the ProPairs C++ code without Docker on different architectures 
 
 Once the dependencies are installed get the source code and run "make":
   ```
-  git clone --recursive https://github.com/f-krull/propairs
+  git clone --recursive https://github.com/propairs/propairs
   cd propairs
   make
   ```
