@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-function getHeader() {
+getHeader() {
   if [ "$1" == "-" ]; then
     echo "-"
     return;
@@ -12,13 +12,13 @@ function getHeader() {
 }
 
 
-function getNumRunning {
+getNumRunning() {
    PROGNAME="$1"
    echo `find /proc/ -maxdepth 1 -user ${USER} -type d -exec basename {} \; 2> /dev/null | xargs ps | grep timeout | grep "${PROGNAME}" | wc -l`
 }
 
 
-function getNumCpu {
+getNumCpu() {
    # how many processes do we want to spawn=?   
    NUMCPU=`cat /proc/cpuinfo | grep "^proc" | wc -l`
    if [ "${NUMCPU}" -lt 1 ]; then
@@ -27,7 +27,8 @@ function getNumCpu {
    echo $NUMCPU
 }
 
-function waitProgSpawn {
+
+waitProgSpawn() {
    PROGNAME="$1"
    NUMCPU=`getNumCpu`
    if [ "$2" != "" ]; then
@@ -42,4 +43,5 @@ function waitProgSpawn {
    echo -ne "\n"
    sleep 1
 }
+
 
