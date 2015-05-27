@@ -16,21 +16,36 @@ OPTIONS:
 EOF
 exit 1;
 }
+# -v verbose
+# 
+
+# logging function - needs tailing newline!
+pplog() {
+   if [ $1 -le ${g_loglevel} ]; then
+      IFS="\n"
+      cat | while read line; do 
+         echo "$(date)" "$line" | tee -a "${g_logfile}"
+      done
+      unset IFS
+   fi
+}
+declare g_loglevel=0
+declare g_logfile=/tmp/log
 
 error() {
    line="$1"
    message="$2"
    if [ "$message" != "" ]; then
-      printf "error: %s (line %s)\n" "$message" "$line"
-   elif [ "${g_message}" != "" ]; then
-      printf "error while %s (line %s)\n" "${g_message}" "$line"
+      printf "error: %s (line %s)\n" "$message" "$line" | pplog 0
+   elif [ "${g_statusmessage}" != "" ]; then
+      printf "error while %s (line %s)\n" "${g_statusmessage}" "$line" | pplog 0
    else
-      printf "error (line %s)\n" "$line"
+      printf "error (line %s)\n" "$line" | pplog 0
    fi
    exit 1
 }
 trap 'error ${LINENO}' ERR
-declare g_message=""
+declare g_statusmessage=""
 
 
 
@@ -61,10 +76,12 @@ shift $((OPTIND-1))
 
 #-- check arguments -----------
 
-printf "OUTPUT:       %s\n" "$OUTPUT"
-printf "TESTSET:      %s\n" "$TESTSET"
-printf "PPROOT:       %s\n" "$PPROOT"
-printf "PROPAIRSROOT: %s\n" "$PROPAIRSROOT"
+pplog 1 << EOI
+OUTPUT:       $OUTPUT
+TESTSET:      $TESTSET
+PPROOT:       $PPROOT
+PROPAIRSROOT: $PROPAIRSROOT
+EOI
 
 # set PROPAIRSROOT if defined by argument
 if [ "${PPROOT}" != "" ]; then
@@ -88,7 +105,8 @@ fi
 
 #-- set variables -----------
 
-g_message="setting variables"
+g_statusmessage="setting variables"
+echo ${g_statusmessage} | pplog 0
 export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d`
 
 if [ ! -d "${PYTHONPATH}" ]; then
@@ -111,7 +129,8 @@ export PDBDATADIR=${OUTPUT}/pdb_dst/
 
 #-- define helper functions -----------
 
-g_message="defining helper functions"
+g_statusmessage="defining helper functions"
+echo ${g_statusmessage} | pplog 0
 get_dir_hash() {
    # get ms5sum of md5sum of all files
    # TODO: WARNING might change when files have moved
@@ -120,24 +139,25 @@ get_dir_hash() {
 
 #-- get pdb files -----------
 
-g_message="getting PDB files"
+g_statusmessage="getting PDB files"
+echo ${g_statusmessage}"..." | pplog 0
 if [ "${TESTSET}" != "" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb
+   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
 else 
    rsync -av --delete --progress --port=33444 \
-   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb
+   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
 fi
 get_dir_hash ./pdb > ./pdb.md5
 
 if [ "${TESTSET}" != "" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/
+   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
 else
    rsync -av --delete --progress --port=33444 \
-   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/
+   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
 fi
 get_dir_hash ./pdb_bio > ./pdb_bio.md5
 
@@ -145,7 +165,8 @@ get_dir_hash ./pdb_bio > ./pdb_bio.md5
 
 #-- prepare pdb files -----------
 
-g_message="preparing PDB files"
+g_statusmessage="preparing PDB files"
+echo ${g_statusmessage}"..." | pplog 0
 # check if something changed
 rebuild_pdb=0
 if [ ! -e ./pdb.md5_old ] || ! diff -q ./pdb.md5 ./pdb.md5_old > /dev/null ; then
@@ -167,22 +188,25 @@ if [ ${rebuild_pdb} -eq 1 ]; then
    # store md5sums for next call
    cp ./pdb.md5     ./pdb.md5_old
    cp ./pdb_bio.md5 ./pdb_bio.md5_old
+else
+   echo "   nothing changed - using previous data" | pplog 0
 fi 
 
 
 
-#-- init propairs -----------
+#-- init propairs vars -----------
 
 
-g_message="initializing propairs"
+g_statusmessage="initializing propairs variables"
+echo ${g_statusmessage}"..." | pplog 0
 declare SUFFIX=
 PDBSET=
-FULL=0
+FULL=1
 DATE=$(date +%y%m%d)
 SUFFIX="test"
 NAME="run"${DATE}${SUFFIX}"_"
 # return to initial directory
-trap "{ cd - ; exit 255; }" SIGINT
+#trap "{ cd - ; exit 255; }" SIGINT
 # create output dir
 TMPDIR=./
 TMPDIR2=./
@@ -191,7 +215,8 @@ TMPDIR2=${TMPDIR2}/${NAME}/
 # define stuff
 PDBDIR=${PDBDATADIR}
 PREFIX=${TMPDIR}/${NAME}
-LOGFN=${PREFIX}"log"
+g_logfile=${PREFIX}"log"
+rm -f ${g_logfile}
 PDBCODES=${PREFIX}"0a_pdbcodes"
 TABGRPTMP=${TMPDIR2}"0b_chaingrp"
 TABCONTMP=${TMPDIR2}"0c_chaincon"
@@ -250,7 +275,7 @@ function 1findcandidates {
    # format output
    formatTable ${MOUTFILE} 6
    # print info
-   printf "  %s seeds generated\n" "`tail -n +2 ${MOUTFILE} | wc -l`"
+   printf "  %s seeds generated\n" "`tail -n +2 ${MOUTFILE} | wc -l`" | pplog 1
 }
 
 #------------------------------------------------------------------------------
@@ -270,8 +295,8 @@ function 2alignunbound {
    # format output
    formatTable ${MOUTFILE} 41
    # print info
-   printf "  %s seeds checked\n" "`tail -n +2 ${MOUTFILE} | wc -l`"
-   printf "  %s valid alignments\n" "`tail -n +2 ${MOUTFILE} | grep -v error | wc -l`"
+   printf "   %s seeds checked\n" "`tail -n +2 ${MOUTFILE} | wc -l`" | pplog 0
+   printf "   %s valid alignments\n" "`tail -n +2 ${MOUTFILE} | grep -v error | wc -l`" | pplog 0
 }
 
 #------------------------------------------------------------------------------
@@ -296,9 +321,9 @@ function 3clusterinterfaces {
    # write out interface score vs. sequence ID
    cat ${MLOGFILE} | grep "^intsc" | gzip - > ${MLOGFILE}_intscore.gz
    cat ${MLOGFILE} | gzip > ${MLOGFILEGZ}
-   printf "  %s unique interfaces\n" "`cat ${MLOGFILE}_interfaces | wc -l`"
-   printf "  %s interface clusters\n" "`cat  ${MLOGFILE}_cluster | grep "^cl cluster" | wc -l`"
-   printf "  %s alignments assigned to clusters\n" "`tail -n +2 ${MOUTFILE} | wc -l`"
+   printf "   %s unique interfaces\n" "`cat ${MLOGFILE}_interfaces | wc -l`"  | pplog 0
+   printf "   %s interface clusters\n" "`cat  ${MLOGFILE}_cluster | grep "^cl cluster" | wc -l`"  | pplog 0
+   printf "   %s alignments assigned to clusters\n" "`tail -n +2 ${MOUTFILE} | wc -l`"  | pplog 0
    
 }
 
@@ -319,8 +344,8 @@ function 4mergepartners {
    C=`tail -n +2  ${MOUTFILE} | grep  -v '^$' | wc -l`
    UNPAIRED=$(( S*2  - C )) 
    PAIRED=$(( S - UNPAIRED )) 
-   printf "  %s complexes with one aligned unbound\n" "$UNPAIRED"
-   printf "  %s complexes with two aligned unbound\n" "$PAIRED"
+   printf "   %s complexes with one aligned unbound\n" "$UNPAIRED" | pplog 0
+   printf "   %s complexes with two aligned unbound\n" "$PAIRED" | pplog 0
    # write out pairings that do not match because of cofactors
    ${PROPAIRSROOT}/bin/4mergepartners.sh -c ${MCLUSFILE} | grep -v " ok " | uniq > ${PREFIX}"supp_unmatchedCof"
 }
@@ -332,11 +357,10 @@ function runsearch {
    if [ "${FULL}" -eq 1 ]; then
 
       if [ ! -e ${PDBCODES}_done ]; then
-         rm -f ${TABSIM}_done   
-         printf "0 getting PDB codes of all files\n" && \
-         printf "  " && date && \
+         g_statusmessage="getting PDB codes"
+         echo ${g_statusmessage}"..." | pplog 0
+         rm -f ${TABSIM}_done
          find  ${PDBDIR} -name '*.pdb' -exec basename {} .pdb \; | sort > ${PDBCODES} && \
-         printf "  done " && date && \
          touch ${PDBCODES}_done
       fi
 
@@ -352,15 +376,14 @@ function runsearch {
          fi
          
          # run 
-         printf "0 calculating chain similarities \n" && \
-         printf "  " && date && \
+         g_statusmessage="calculating chain similarities"
+         echo ${g_statusmessage}"..." | pplog 0
          ${XTALDIR}/src/xtalcompseqid/xtalcompseqid grp ${PDBDIR} ${INP} > ${TABGRPTMP} 2> ${TMPDIR2}/chainsim_grp_log.txt && \
          ${XTALDIR}/src/xtalcompseqid/xtalcompseqid con ${PDBDIR} ${INP} > ${TABCONTMP} 2> ${TMPDIR2}/chainsim_con_log.txt && \
          ${XTALDIR}/src/xtalcompseqid/xtalcompseqid sim ${PDBDIR} ${INP} > ${TABSIMTMP} 2> ${TMPDIR2}/chainsim_sim_log.txt && \
          cp ${TABGRPTMP} ${TABGRP} && \
          cp ${TABCONTMP} ${TABCON} && \
          cp ${TABSIMTMP} ${TABSIM} && \
-         printf "  done " && date && \
          touch ${TABSIM}_done      
       fi
 
@@ -368,11 +391,10 @@ function runsearch {
          exit 1
       fi
       if [ ! -e ${DBIMP}_done ]; then
+         g_statusmessage="importing to database"
+         echo ${g_statusmessage}"..." | pplog 0
          rm -f ${CAND}_done
-         printf "0 importing to database \n" && \
-         printf "  " && date && \
          ${PROPAIRSROOT}/bin/0importchaindata.sh ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
-         printf "  done " && date && \
          touch ${DBIMP}_done
       fi
       if [ ! -e ${DBIMP}_done ]; then
@@ -383,11 +405,9 @@ function runsearch {
 
    if [ ! -e ${CAND}_done ]; then
       rm -f ${ALIGNED}_done
-      printf "1 getting complex candidates\n" && \
-      printf "  --" && date && \
+      g_statusmessage="generating seeds"
+      echo ${g_statusmessage}"..." | pplog 0
       1findcandidates ${CAND} ${TMPDIR2}/1cand_log ${PDBSET} && \
-      printf "  --done " && \
-      date && \
       touch ${CAND}_done
    fi
 
@@ -396,12 +416,10 @@ function runsearch {
       exit 1
    fi
    if [ ! -e ${ALIGNED}_done ]; then
+      g_statusmessage="calculating interface partitions / unbound alignments"
+      echo ${g_statusmessage}"..." | pplog 0              
       rm -f ${CLUSTER}_done
-      printf "2 aligning unbound to bound\n" && \
-      printf "  --" && date && \
       2alignunbound ${ALIGNED} ${TMPDIR2}/2aligned_log "${PDBDIR}" "${CAND}" && \
-      printf "  --done " && \
-      date && \
       touch ${ALIGNED}_done
    #   printf "  "
    fi
@@ -411,12 +429,10 @@ function runsearch {
       exit 1
    fi
    if [ ! -e ${CLUSTERED}_done ]; then
+      g_statusmessage="clustering interfaces"
+      echo ${g_statusmessage}"..." | pplog 0               
       rm -f ${CLUSTERED}_done
-      printf "3 clustering complex interfaces\n" && \
-      printf "  --" && date && \
       3clusterinterfaces ${CLUSTERED} ${TMPDIR2}/3cluster_log "${PDBDIR}" "${ALIGNED}" && \
-      printf "  --done " && \
-      date && \
       touch ${CLUSTERED}_done
    fi
       
@@ -425,11 +441,9 @@ function runsearch {
       exit 1
    fi   
    if [ ! -e ${MERGED}_done ]; then
-      printf "4 merging interacting partners\n" && \
-      printf "  --" && date && \
+      g_statusmessage="generating non-redundant dataset"
+      echo ${g_statusmessage}"..." | pplog 0   
       4mergepartners ${MERGED} ${TMPDIR2}/4merge_log ${CLUSTERED} && \
-      printf "  --done " && \
-      date && \
       touch ${MERGED}_done
    fi
    
@@ -438,14 +452,12 @@ function runsearch {
       exit 1
    fi
    if [ ! -e ${WWWDATA}_done ]; then
-      printf "5 creating web data\n" && \
-      printf "  --" && date && \
+      g_statusmessage="creating web data"
+      echo ${g_statusmessage}"..." | pplog 0      
       WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" ) && \
       mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
       mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
       ${PROPAIRSROOT}/bin/makewebdata.sh ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
-      printf "  --done " && \
-      date && \
       touch ${WWWDATA}_done
    fi
 }
@@ -453,5 +465,7 @@ function runsearch {
 #------------------------------------------------------------------------------
 
 # execute 
-runsearch > ${LOGFN}
+runsearch
 
+ g_statusmessage="done"
+echo ${g_statusmessage}"" | pplog 0   
