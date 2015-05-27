@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
+
 usage()
 {
 cat << EOF
-usage: $0 -i <PATH> -o <PATH> [-t <0|1>]
+usage: $0 [-i <PATH>] -o <PATH> [-t <0|1>]
 
 This script generates the ProPairs dataset
 
@@ -15,6 +16,22 @@ OPTIONS:
 EOF
 exit 1;
 }
+
+error() {
+   line="$1"
+   message="$2"
+   if [ "$message" != "" ]; then
+      printf "error: %s (line %s)\n" "$message" "$line"
+   elif [ "${g_message}" != "" ]; then
+      printf "error while %s (line %s)\n" "${g_message}" "$line"
+   else
+      printf "error (line %s)\n" "$line"
+   fi
+   exit 1
+}
+trap 'error ${LINENO}' ERR
+declare g_message=""
+
 
 
 #-- parse arguments -----------
@@ -39,6 +56,7 @@ while getopts ":t:p:o:i:" o; do
     esac
 done
 shift $((OPTIND-1))
+
 
 
 #-- check arguments -----------
@@ -67,8 +85,10 @@ if [ ! -e "${PROPAIRSROOT}"/start.sh ]; then
 fi
 
 
+
 #-- set variables -----------
 
+g_message="setting variables"
 export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d`
 
 if [ ! -d "${PYTHONPATH}" ]; then
@@ -88,76 +108,76 @@ fi
 export PDBDATADIR=${OUTPUT}/pdb_dst/
 
 
+
+#-- define helper functions -----------
+
+g_message="defining helper functions"
+get_dir_hash() {
+   # get ms5sum of md5sum of all files
+   # TODO: WARNING might change when files have moved
+   find "$1" -type f -exec md5sum {} \; | md5sum
+}
+
 #-- get pdb files -----------
 
-
-rm -f pdb_done
+g_message="getting PDB files"
 if [ "${TESTSET}" != "" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
-   touch pdb_done
+   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb
 else 
    rsync -av --delete --progress --port=33444 \
-   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb && \
-   touch pdb_done
+   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb
 fi
-if [ ! -e ./pdb_done ]; then
-   echo "error: pdb_done"
-   exit 1
-fi
+get_dir_hash ./pdb > ./pdb.md5
 
-
-rm -f pdb_bio_done
 if [ "${TESTSET}" != "" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
-   touch pdb_bio_done
+   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/
 else
    rsync -av --delete --progress --port=33444 \
-   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ && \
-   touch pdb_bio_done   
+   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/
 fi
-if [ ! -e ./pdb_bio_done ]; then
-   echo "error: pdb_bio_done"
-   exit 1
-fi
+get_dir_hash ./pdb_bio > ./pdb_bio.md5
+
 
 
 #-- prepare pdb files -----------
 
-
-rm -f pdb_bio_merged_done
-rm -Rf pdb_bio_merged
-mkdir -p pdb_bio_merged
-python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU} && \
-touch pdb_bio_merged_done
-if [ ! -e pdb_bio_merged_done ]; then
-   echo "error: pdb_bio_merged_done"
-   exit 1
+g_message="preparing PDB files"
+# check if something changed
+rebuild_pdb=0
+if [ ! -e ./pdb.md5_old ] || ! diff -q ./pdb.md5 ./pdb.md5_old > /dev/null ; then
+   rebuild_pdb=1
 fi
-
-rm -f pdb_dst_done
-rm -Rf pdb_dst
-mkdir -p pdb_dst
-${PROPAIRSROOT}/bin/pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst/ && \
-touch pdb_dst_done
-if [ ! -e pdb_dst_done ]; then
-   echo "error: pdb_dst_done"
-   exit 1
+if [ ! -e ./pdb_bio.md5_old ] || ! diff -q ./pdb_bio.md5 ./pdb_bio.md5_old > /dev/null ; then
+   rebuild_pdb=1
 fi
+# rebuild data, if input changed
+echo "rebuild:" ${rebuild_pdb}
+if [ ${rebuild_pdb} -eq 1 ]; then
+   # remove old data
+   rm -Rf pdb_bio_merged
+   rm -Rf pdb_dst
+   # create data
+   mkdir -p pdb_bio_merged
+   mkdir -p pdb_dst
+   python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU}
+   ${PROPAIRSROOT}/bin/pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst
+   # store md5sums for next call
+   cp ./pdb.md5     ./pdb.md5_old
+   cp ./pdb_bio.md5 ./pdb_bio.md5_old
+fi 
+
 
 
 #-- generate set -----------
-
 
 declare TESTARGS=
 if [ "${TESTSET}" != "" ]; then
    TESTARGS="-p test"
 fi
 
-if [ -e pdb_dst_done ]; then
-   ${PROPAIRSROOT}/bin/run_db.sh -f $TESTARGS
-fi
+${PROPAIRSROOT}/bin/run_db.sh -f $TESTARGS
 
