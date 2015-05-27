@@ -457,7 +457,15 @@ function runsearch {
       WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" ) && \
       mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
       mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
-      ${PROPAIRSROOT}/bin/makewebdata.sh ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+      ${PROPAIRSROOT}/bin/makewebdata.sh -t ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+      echo "   Data tables created. You can start viewing the data!" | pplog 0 && \
+      echo "   " | pplog 0 && \
+      echo "   Open <OUTPUT_DIRECTORY>/www/database.html" | pplog 0 && \
+      echo "   " | pplog 0 && \
+      echo "   Creating PDB files and images..." | pplog 0 && \
+      ${PROPAIRSROOT}/bin/makewebdata.sh -p ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
+      echo "   PDB files and front images created. Creating images of rotated structrues..." | pplog 0 && \
+      ${PROPAIRSROOT}/bin/makewebdata.sh -r ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
       touch ${WWWDATA}_done
    fi
 }
@@ -469,3 +477,4 @@ runsearch
 
  g_statusmessage="done"
 echo ${g_statusmessage}"" | pplog 0   
+

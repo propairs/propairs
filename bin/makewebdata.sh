@@ -3,9 +3,48 @@
 source ${PROPAIRSROOT}/config/global.conf
 source ${PROPAIRSROOT}/config/columns_def.sh
 
-
 DEBUG=0
 HEADONLY=0
+
+declare TASK_DATTABLE=0x1 # data table
+declare TASK_PDBFILES=0x2 # PDBs and front image
+declare TASK_OTHERIMG=0x4 # all other images
+declare task=0
+
+usage()
+{
+cat << EOF
+usage: $0 <input_set> <large_set> <output_dir> [-t] [-p] [-r]
+
+This script generates webdata for a ProPairs dataset.
+The large_set is required to generate the lists of similar interfaces.
+
+OPTIONS:
+   -h   show this message
+   -t   generate data table
+   -p   generate PDBs and front image
+   -r   generate all other images
+EOF
+exit 1;
+}
+
+while getopts "tpr" o; do
+    case "${o}" in
+        t)
+            task=$(( task | TASK_DATTABLE ))
+            ;;
+        p)
+            task=$(( task | TASK_PDBFILES ))
+            ;;
+        r)
+            task=$(( task | TASK_OTHERIMG ))
+            ;;            
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
 
 INPUT=$1
 INPUTCLUS=$2
@@ -41,6 +80,11 @@ if [ ! -e "${PYMOLBIN}" ]; then
     exit 1
 fi
 
+if [ ${task} -eq 0 ]; then
+    echo "nothing to do - set task"
+    usage
+    exit 1
+fi
 
 #------------------------------------------------------------------------------
 
@@ -484,89 +528,92 @@ if [ "$DEBUG" == "1" ]; then
 fi
 
 ## write JSON table
-OUTFILE=${DSTDIR}/merged.json
-printf "{\n" > $OUTFILE
-i=0;
-while read ROWPAIR; do
-   echo "writing row $i"
-   # split rowpair to two seedidx at ","
-   IFS=","
-   read -a SIDX < <(echo "$ROWPAIR")
-   unset IFS
-   INDEX1=${SIDX[0]}
-   INDEX2=${SIDX[1]}
-   # write table row
-   writeJsonRow ${INPUT} $i $INDEX1 $INDEX2 >> $OUTFILE
-   i=$((i+1))
-done < <(echo "$ROWPAIRS")
-printf "}\n" >> $OUTFILE
-
+if [ $(( task & TASK_DATTABLE )) -ne 0 ]; then
+   OUTFILE=${DSTDIR}/merged.json
+   printf "{\n" > $OUTFILE
+   i=0;
+   while read ROWPAIR; do
+      echo "writing row $i"
+      # split rowpair to two seedidx at ","
+      IFS=","
+      read -a SIDX < <(echo "$ROWPAIR")
+      unset IFS
+      INDEX1=${SIDX[0]}
+      INDEX2=${SIDX[1]}
+      # write table row
+      writeJsonRow ${INPUT} $i $INDEX1 $INDEX2 >> $OUTFILE
+      i=$((i+1))
+   done < <(echo "$ROWPAIRS")
+   printf "}\n" >> $OUTFILE
+fi
 
 # write detail info
-i=0;
-while read ROWPAIR; do
-   echo "writing info $i"
-   # split rowpair to two seedidx at ","
-   IFS=","
-   read -a SIDX < <(echo "$ROWPAIR")
-   unset IFS
-   INDEX1=${SIDX[0]}
-   INDEX2=${SIDX[1]}
+if [ $(( task & TASK_PDBFILES )) -ne 0 ]; then
+   i=0;
+   while read ROWPAIR; do
+      echo "writing info $i"
+      # split rowpair to two seedidx at ","
+      IFS=","
+      read -a SIDX < <(echo "$ROWPAIR")
+      unset IFS
+      INDEX1=${SIDX[0]}
+      INDEX2=${SIDX[1]}
 
-   INFODIR=${DSTDIR}/info/$INDEX1
-   mkdir -p $INFODIR
-   i=$((i+1))
-   # write json details
-   writeJsonData ${INPUT} $INPUTCLUS $INDEX1 $INDEX2 > ${INFODIR}/$INDEX1.json
-   # write pdb and images
-   ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
-   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -o ${DSTDIR}/pdb/${INDEX1} -w 400 -f ${INFODIR}/img $ARGS
-   # full first
-   (
-      find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
-   )
-   # preview 
-   convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
-   # remove pngs
-   (
-      find ${INFODIR}/ -name '*.png' -exec rm {} \;
-   )
-done < <(echo "$ROWPAIRS")
-
+      INFODIR=${DSTDIR}/info/$INDEX1
+      mkdir -p $INFODIR
+      i=$((i+1))
+      # write json details
+      writeJsonData ${INPUT} $INPUTCLUS $INDEX1 $INDEX2 > ${INFODIR}/$INDEX1.json
+      # write pdb and images
+      ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
+      ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -o ${DSTDIR}/pdb/${INDEX1} -w 400 -f ${INFODIR}/img $ARGS
+      # full first
+      (
+         find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
+      )
+      # preview 
+      convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
+      # remove pngs
+      (
+         find ${INFODIR}/ -name '*.png' -exec rm {} \;
+      )
+   done < <(echo "$ROWPAIRS")
+fi
 
 # write rotated images
-i=0;
-while read ROWPAIR; do
-   echo "writing info $i"
-   # split rowpair to two seedidx at ","
-   IFS=","
-   read -a SIDX < <(echo "$ROWPAIR")
-   unset IFS
-   INDEX1=${SIDX[0]}
-   INDEX2=${SIDX[1]}
+if [ $(( task & TASK_OTHERIMG )) -ne 0 ]; then
+   i=0;
+   while read ROWPAIR; do
+      echo "writing info $i"
+      # split rowpair to two seedidx at ","
+      IFS=","
+      read -a SIDX < <(echo "$ROWPAIR")
+      unset IFS
+      INDEX1=${SIDX[0]}
+      INDEX2=${SIDX[1]}
 
-   INFODIR=${DSTDIR}/info/$INDEX1
-   mkdir -p $INFODIR
-   i=$((i+1))
-   # write images
-   ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
-   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -w 400 -r -f ${INFODIR}/img $ARGS
-   # full
-   (
-      find ${INFODIR} -name '*.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 60 {} \;
-   )
-   # full first
-   (
-      find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
-   )
-   # preview 
-   convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
-   # remove pngs
-   (
-      find ${INFODIR}/ -name '*.png' -exec rm {} \;
-   )
-done < <(echo "$ROWPAIRS")
-
+      INFODIR=${DSTDIR}/info/$INDEX1
+      mkdir -p $INFODIR
+      i=$((i+1))
+      # write images
+      ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
+      ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -w 400 -r -f ${INFODIR}/img $ARGS
+      # full
+      (
+         find ${INFODIR} -name '*.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 60 {} \;
+      )
+      # full first
+      (
+         find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
+      )
+      # preview 
+      convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
+      # remove pngs
+      (
+         find ${INFODIR}/ -name '*.png' -exec rm {} \;
+      )
+   done < <(echo "$ROWPAIRS")
+fi
 
 
 
