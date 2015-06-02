@@ -13,11 +13,10 @@ OPTIONS:
    -i <PATH>    path to directoy containing this script
    -o <PATH>    path to output directory
    -t <0|1>     0: full search; 1: test search (default)
+   -v           enable debug output
 EOF
 exit 1;
 }
-# -v verbose
-# 
 
 # logging function - needs tailing newline!
 pplog() {
@@ -54,7 +53,7 @@ declare g_statusmessage=""
 declare PPROOT=
 declare OUTPUT=
 declare TESTSET=1
-while getopts ":t:p:o:i:" o; do
+while getopts "t:p:o:i:v" o; do
     case "${o}" in
         t)
             TESTSET=${OPTARG}
@@ -65,6 +64,9 @@ while getopts ":t:p:o:i:" o; do
         i)
             PPROOT=${OPTARG}
             ;;            
+        v)
+            g_loglevel=1
+            ;;
         *)
             usage
             ;;
