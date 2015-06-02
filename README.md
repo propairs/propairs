@@ -35,7 +35,7 @@ Run ProPairs on a test set (takes a few minutes):
   docker run --rm -v ~/ppdata:/data propairs -t 1
   ```
 
-This will generate raw data files with the suffix "3_clustered" for the large ProPairs set and the suffix "4_merged" for the non-redundant ProPairs set. Additionally, an interactive webpage is created locally that displays the non-redundant dataset:
+This will generate raw data files. Additionally, an interactive webpage is created locally that displays the non-redundant dataset:
   ```
   firefox ~/ppdata/www/database.html
   ```
