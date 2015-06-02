@@ -354,130 +354,127 @@ function 4mergepartners {
 
 #------------------------------------------------------------------------------
 
-function runsearch {
-   # full search (starts from pdb files) 
-   if [ "${FULL}" -eq 1 ]; then
 
-      if [ ! -e ${PDBCODES}_done ]; then
-         g_statusmessage="getting PDB codes"
-         echo ${g_statusmessage}"..." | pplog 0
-         rm -f ${TABSIM}_done
-         find  ${PDBDIR} -name '*.pdb' -exec basename {} .pdb \; | sort > ${PDBCODES} && \
-         [ -s ${PDBCODES} ] && \
-         touch ${PDBCODES}_done
-      fi
+# full search (starts from pdb files) 
+if [ "${FULL}" -eq 1 ]; then
 
-
-      if [ ! -e ${TABSIM}_done ]; then
-         rm -f ${DBIMP}_done
-         INP=${TMPDIR2}/chainsim_pdblist.txt
-         # use subset?
-         if [ "${PDBSET}" == "" ]; then
-            cat ${PDBCODES} > ${INP}
-         else
-            cat ${PDBCODES} | grep -f ${PDBSET} > ${INP}
-         fi
-         
-         # run 
-         g_statusmessage="calculating chain similarities"
-         echo ${g_statusmessage}"..." | pplog 0
-         ${XTALDIR}/src/xtalcompseqid/xtalcompseqid grp ${PDBDIR} ${INP} > ${TABGRPTMP} 2> ${TMPDIR2}/chainsim_grp_log.txt && \
-         ${XTALDIR}/src/xtalcompseqid/xtalcompseqid con ${PDBDIR} ${INP} > ${TABCONTMP} 2> ${TMPDIR2}/chainsim_con_log.txt && \
-         ${XTALDIR}/src/xtalcompseqid/xtalcompseqid sim ${PDBDIR} ${INP} > ${TABSIMTMP} 2> ${TMPDIR2}/chainsim_sim_log.txt && \
-         cp ${TABGRPTMP} ${TABGRP} && \
-         cp ${TABCONTMP} ${TABCON} && \
-         cp ${TABSIMTMP} ${TABSIM} && \
-         touch ${TABSIM}_done      
-      fi
-
-      if [ ! -e ${TABSIM}_done ]; then
-         exit 1
-      fi
-      if [ ! -e ${DBIMP}_done ]; then
-         g_statusmessage="importing to database"
-         echo ${g_statusmessage}"..." | pplog 0
-         rm -f ${CAND}_done
-         ${PROPAIRSROOT}/bin/0importchaindata.sh ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
-         touch ${DBIMP}_done
-      fi
-      if [ ! -e ${DBIMP}_done ]; then
-         exit 1
-      fi
-   fi # end full search
-
-
-   if [ ! -e ${CAND}_done ]; then
-      rm -f ${ALIGNED}_done
-      g_statusmessage="generating seeds"
+   if [ ! -e ${PDBCODES}_done ]; then
+      g_statusmessage="getting PDB codes"
       echo ${g_statusmessage}"..." | pplog 0
-      1findcandidates ${CAND} ${TMPDIR2}/1cand_log ${PDBSET} && \
-      touch ${CAND}_done
+      rm -f ${TABSIM}_done
+      find  ${PDBDIR} -name '*.pdb' -exec basename {} .pdb \; | sort > ${PDBCODES} && \
+      [ -s ${PDBCODES} ] && \
+      touch ${PDBCODES}_done
    fi
 
 
-   if [ ! -e ${CAND}_done ]; then
-      exit 1
-   fi
-   if [ ! -e ${ALIGNED}_done ]; then
-      g_statusmessage="calculating interface partitions / unbound alignments"
-      echo ${g_statusmessage}"..." | pplog 0              
-      rm -f ${CLUSTER}_done
-      2alignunbound ${ALIGNED} ${TMPDIR2}/2aligned_log "${PDBDIR}" "${CAND}" && \
-      touch ${ALIGNED}_done
-   #   printf "  "
-   fi
-
-
-   if [ ! -e ${ALIGNED}_done ]; then
-      exit 1
-   fi
-   if [ ! -e ${CLUSTERED}_done ]; then
-      g_statusmessage="clustering interfaces"
-      echo ${g_statusmessage}"..." | pplog 0               
-      rm -f ${CLUSTERED}_done
-      3clusterinterfaces ${CLUSTERED} ${TMPDIR2}/3cluster_log "${PDBDIR}" "${ALIGNED}" && \
-      touch ${CLUSTERED}_done
-   fi
+   if [ ! -e ${TABSIM}_done ]; then
+      rm -f ${DBIMP}_done
+      INP=${TMPDIR2}/chainsim_pdblist.txt
+      # use subset?
+      if [ "${PDBSET}" == "" ]; then
+         cat ${PDBCODES} > ${INP}
+      else
+         cat ${PDBCODES} | grep -f ${PDBSET} > ${INP}
+      fi
       
-         
-   if [ ! -e ${CLUSTERED}_done ]; then
+      # run 
+      g_statusmessage="calculating chain similarities"
+      echo ${g_statusmessage}"..." | pplog 0
+      ${XTALDIR}/src/xtalcompseqid/xtalcompseqid grp ${PDBDIR} ${INP} > ${TABGRPTMP} 2> ${TMPDIR2}/chainsim_grp_log.txt && \
+      ${XTALDIR}/src/xtalcompseqid/xtalcompseqid con ${PDBDIR} ${INP} > ${TABCONTMP} 2> ${TMPDIR2}/chainsim_con_log.txt && \
+      ${XTALDIR}/src/xtalcompseqid/xtalcompseqid sim ${PDBDIR} ${INP} > ${TABSIMTMP} 2> ${TMPDIR2}/chainsim_sim_log.txt && \
+      cp ${TABGRPTMP} ${TABGRP} && \
+      cp ${TABCONTMP} ${TABCON} && \
+      cp ${TABSIMTMP} ${TABSIM} && \
+      touch ${TABSIM}_done      
+   fi
+
+   if [ ! -e ${TABSIM}_done ]; then
       exit 1
-   fi   
-   if [ ! -e ${MERGED}_done ]; then
-      g_statusmessage="generating non-redundant dataset"
-      echo ${g_statusmessage}"..." | pplog 0   
-      4mergepartners ${MERGED} ${TMPDIR2}/4merge_log ${CLUSTERED} && \
-      touch ${MERGED}_done
    fi
-   
-   
-   if [ ! -e ${MERGED}_done ]; then
+   if [ ! -e ${DBIMP}_done ]; then
+      g_statusmessage="importing to database"
+      echo ${g_statusmessage}"..." | pplog 0
+      rm -f ${CAND}_done
+      ${PROPAIRSROOT}/bin/0importchaindata.sh ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
+      touch ${DBIMP}_done
+   fi
+   if [ ! -e ${DBIMP}_done ]; then
       exit 1
    fi
-   if [ ! -e ${WWWDATA}_done ]; then
-      g_statusmessage="creating web data"
-      echo ${g_statusmessage}"..." | pplog 0      
-      WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" ) && \
-      SETNAME=$( echo $NAME | sed "s/^run//" | tr -d "_" ) && \
-      mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
-      mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
-      ${PROPAIRSROOT}/bin/makewebdata.sh -t -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
-      echo "   Data tables created. You can start viewing the data!" | pplog 0 && \
-      echo "   " | pplog 0 && \
-      echo "   Open <OUTPUT_DIRECTORY>/www/database.html" | pplog 0 && \
-      echo "   " | pplog 0 && \
-      echo "   Creating PDB files and images..." | pplog 0 && \
-      ${PROPAIRSROOT}/bin/makewebdata.sh -p -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
-      echo "   PDB files and front images created. Creating images of rotated structures..." | pplog 0 && \
-      ${PROPAIRSROOT}/bin/makewebdata.sh -r -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
-      touch ${WWWDATA}_done
-   fi
-}
+fi # end full search
+
+
+if [ ! -e ${CAND}_done ]; then
+   rm -f ${ALIGNED}_done
+   g_statusmessage="generating seeds"
+   echo ${g_statusmessage}"..." | pplog 0
+   1findcandidates ${CAND} ${TMPDIR2}/1cand_log ${PDBSET} && \
+   touch ${CAND}_done
+fi
+
+
+if [ ! -e ${CAND}_done ]; then
+   exit 1
+fi
+if [ ! -e ${ALIGNED}_done ]; then
+   g_statusmessage="calculating interface partitions / unbound alignments"
+   echo ${g_statusmessage}"..." | pplog 0              
+   rm -f ${CLUSTER}_done
+   2alignunbound ${ALIGNED} ${TMPDIR2}/2aligned_log "${PDBDIR}" "${CAND}" && \
+   touch ${ALIGNED}_done
+#   printf "  "
+fi
+
+
+if [ ! -e ${ALIGNED}_done ]; then
+   exit 1
+fi
+if [ ! -e ${CLUSTERED}_done ]; then
+   g_statusmessage="clustering interfaces"
+   echo ${g_statusmessage}"..." | pplog 0               
+   rm -f ${CLUSTERED}_done
+   3clusterinterfaces ${CLUSTERED} ${TMPDIR2}/3cluster_log "${PDBDIR}" "${ALIGNED}" && \
+   touch ${CLUSTERED}_done
+fi
+   
+      
+if [ ! -e ${CLUSTERED}_done ]; then
+   exit 1
+fi   
+if [ ! -e ${MERGED}_done ]; then
+   g_statusmessage="generating non-redundant dataset"
+   echo ${g_statusmessage}"..." | pplog 0   
+   4mergepartners ${MERGED} ${TMPDIR2}/4merge_log ${CLUSTERED} && \
+   touch ${MERGED}_done
+fi
+
+
+if [ ! -e ${MERGED}_done ]; then
+   exit 1
+fi
+if [ ! -e ${WWWDATA}_done ]; then
+   g_statusmessage="creating web data"
+   echo ${g_statusmessage}"..." | pplog 0      
+   WWWNAME=$( echo $NAME | sed "s/^run/data/" | tr -d "_" ) && \
+   SETNAME=$( echo $NAME | sed "s/^run//" | tr -d "_" ) && \
+   mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
+   mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
+   ${PROPAIRSROOT}/bin/makewebdata.sh -t -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+   echo "   Data tables created. You can start viewing the data!" | pplog 0 && \
+   echo "   " | pplog 0 && \
+   echo "   Open <OUTPUT_DIRECTORY>/www/database.html" | pplog 0 && \
+   echo "   " | pplog 0 && \
+   echo "   Creating PDB files and images..." | pplog 0 && \
+   ${PROPAIRSROOT}/bin/makewebdata.sh -p -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
+   echo "   PDB files and front images created. Creating images of rotated structures..." | pplog 0 && \
+   ${PROPAIRSROOT}/bin/makewebdata.sh -r -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
+   touch ${WWWDATA}_done
+fi
 
 #------------------------------------------------------------------------------
 
-# execute 
-runsearch
 
  g_statusmessage="done"
 echo ${g_statusmessage}"" | pplog 0   
