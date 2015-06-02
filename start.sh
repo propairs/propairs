@@ -361,6 +361,7 @@ function runsearch {
          echo ${g_statusmessage}"..." | pplog 0
          rm -f ${TABSIM}_done
          find  ${PDBDIR} -name '*.pdb' -exec basename {} .pdb \; | sort > ${PDBCODES} && \
+         [ -s ${PDBCODES} ] && \
          touch ${PDBCODES}_done
       fi
 
