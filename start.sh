@@ -112,9 +112,7 @@ echo ${g_statusmessage} | pplog 0
 export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d`
 
 if [ ! -d "${PYTHONPATH}" ]; then
-   printf "error: PYTHONPATH=$PYTHONPATH not found\n"
-   printf "       Did you run make?\n"
-   exit 1
+   error ${LINENO} "error: Biopython not found in PYTHONPATH=$PYTHONPATH - Did you run make?\n"
 fi
 
 # TODO: merge_bio_folder.py has high memory requirements
@@ -138,6 +136,8 @@ get_dir_hash() {
    # TODO: WARNING might change when files have moved
    find "$1" -type f -exec md5sum {} \; | md5sum
 }
+
+
 
 #-- get pdb files -----------
 
@@ -383,6 +383,9 @@ if [ "${FULL}" -eq 1 ]; then
    fi
 
 
+   if [ ! -e ${PDBCODES}_done ]; then
+      error ${LINENO} "missing ${PDBCODES}"
+   fi
    if [ ! -e ${TABSIM}_done ]; then
       rm -f ${DBIMP}_done
       INP=${TMPDIR2}/chainsim_pdblist.txt
@@ -406,7 +409,7 @@ if [ "${FULL}" -eq 1 ]; then
    fi
 
    if [ ! -e ${TABSIM}_done ]; then
-      exit 1
+      error ${LINENO} "missing ${TABSIM}"
    fi
    if [ ! -e ${DBIMP}_done ]; then
       g_statusmessage="importing to database"
@@ -416,7 +419,7 @@ if [ "${FULL}" -eq 1 ]; then
       touch ${DBIMP}_done
    fi
    if [ ! -e ${DBIMP}_done ]; then
-      exit 1
+      error ${LINENO} "missing ${DBIMP}"
    fi
 fi # end full search
 
@@ -431,7 +434,7 @@ fi
 
 
 if [ ! -e ${CAND}_done ]; then
-   exit 1
+   error ${LINENO} "missing ${CAND}"
 fi
 if [ ! -e ${ALIGNED}_done ]; then
    g_statusmessage="calculating interface partitions / unbound alignments"
@@ -444,7 +447,7 @@ fi
 
 
 if [ ! -e ${ALIGNED}_done ]; then
-   exit 1
+   error ${LINENO} "missing ${ALIGNED}"
 fi
 if [ ! -e ${CLUSTERED}_done ]; then
    g_statusmessage="clustering interfaces"
@@ -456,7 +459,7 @@ fi
    
       
 if [ ! -e ${CLUSTERED}_done ]; then
-   exit 1
+   error ${LINENO} "missing ${CLUSTERED}"
 fi   
 if [ ! -e ${MERGED}_done ]; then
    g_statusmessage="generating non-redundant dataset"
@@ -467,7 +470,7 @@ fi
 
 
 if [ ! -e ${MERGED}_done ]; then
-   exit 1
+   error ${LINENO} "missing ${MERGED}"
 fi
 if [ ! -e ${WWWDATA}_done ]; then
    g_statusmessage="creating web data"
@@ -488,9 +491,11 @@ if [ ! -e ${WWWDATA}_done ]; then
    ${PROPAIRSROOT}/bin/makewebdata.sh -r -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
    touch ${WWWDATA}_done
 fi
+if [ ! -e ${WWWDATA}_done ]; then
+   error ${LINENO} "missing ${WWWDATA}"
+fi
 
 #------------------------------------------------------------------------------
-
 
  g_statusmessage="done"
 echo ${g_statusmessage}"" | pplog 0   
