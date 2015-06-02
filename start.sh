@@ -354,6 +354,21 @@ function 4mergepartners {
 
 #------------------------------------------------------------------------------
 
+5wwwraw() {
+   local setname="$1"
+   local wwwname="$2"
+   (
+      cd www
+      read -d "" html << EOI   
+      <h2>Dataset - $setname</h2><ul><li><b><a href="data/data${setname}/raw/${setname}.zip">large ProPairs set</a></b></li>no redundancy removed - but contains clustering information<li><b><a href="data/data${setname}/raw/${setname}_nonredundant.zip">small ProPairs set</a></b></li>redundancy removed; contains only representative complexes and unbound structures</ul>   
+EOI
+      cat rawdata.html_tmpl | sed "s+{{RAWDATA}}+$html+g" > rawdata.html
+   )
+}
+
+
+#------------------------------------------------------------------------------
+
 
 # full search (starts from pdb files) 
 if [ "${FULL}" -eq 1 ]; then
@@ -462,6 +477,7 @@ if [ ! -e ${WWWDATA}_done ]; then
    mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
    mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
    ${PROPAIRSROOT}/bin/makewebdata.sh -t -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+   5wwwraw $SETNAME www/data/${WWWNAME} && \
    echo "   Data tables created. You can start viewing the data!" | pplog 0 && \
    echo "   " | pplog 0 && \
    echo "   Open <OUTPUT_DIRECTORY>/www/database.html" | pplog 0 && \
