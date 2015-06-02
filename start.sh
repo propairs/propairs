@@ -26,6 +26,8 @@ pplog() {
          echo "$(date)" "$line" | tee -a "${g_logfile}"
       done
       unset IFS
+   else
+      cat > /dev/null
    fi
 }
 declare g_loglevel=0
@@ -460,7 +462,7 @@ fi
       
 if [ ! -e ${CLUSTERED}_done ]; then
    error ${LINENO} "missing ${CLUSTERED}"
-fi   
+fi
 if [ ! -e ${MERGED}_done ]; then
    g_statusmessage="generating non-redundant dataset"
    echo ${g_statusmessage}"..." | pplog 0   
