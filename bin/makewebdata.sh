@@ -10,25 +10,27 @@ declare TASK_DATTABLE=0x1 # data table
 declare TASK_PDBFILES=0x2 # PDBs and front image
 declare TASK_OTHERIMG=0x4 # all other images
 declare task=0
+declare setname=
 
 usage()
 {
 cat << EOF
-usage: $0 <input_set> <large_set> <output_dir> [-t] [-p] [-r]
+usage: $0 <input_set> <large_set> <output_dir> [-t] [-p] [-r] [-n <set_name>]
 
 This script generates webdata for a ProPairs dataset.
 The large_set is required to generate the lists of similar interfaces.
 
 OPTIONS:
-   -h   show this message
-   -t   generate data table
-   -p   generate PDBs and front image
-   -r   generate all other images
+   -h            show this message
+   -t            generate data table
+   -p            generate PDBs and front image
+   -r            generate all other images
+   -n <set_name> set name of dataset
 EOF
 exit 1;
 }
 
-while getopts "tpr" o; do
+while getopts "tprn:" o; do
     case "${o}" in
         t)
             task=$(( task | TASK_DATTABLE ))
@@ -38,7 +40,10 @@ while getopts "tpr" o; do
             ;;
         r)
             task=$(( task | TASK_OTHERIMG ))
-            ;;            
+            ;;
+        n)  
+            setname="${OPTARG}"
+            ;;
         *)
             usage
             ;;
@@ -49,6 +54,10 @@ shift $((OPTIND-1))
 INPUT=$1
 INPUTCLUS=$2
 OUTPUT=$3
+if [ "${setname}" == "" ]; then
+   setname="$(basename ${OUTPUT})"
+fi
+
 
 #------------------------------------------------------------------------------
 
@@ -520,8 +529,6 @@ mkdir -p ${DSTDIR}/info/
 mkdir -p ${DSTDIR}/pdb/
 mkdir -p ${DSTDIR}/preview/
 
-cp ${INPUT} ${DSTDIR}/
-
 PMARGS=""
 if [ "$DEBUG" == "1" ]; then
     PMARGS=" -d "
@@ -529,6 +536,17 @@ fi
 
 ## write JSON table
 if [ $(( task & TASK_DATTABLE )) -ne 0 ]; then
+   # gen sets
+   echo "${setname}" > ${DSTDIR}/info.txt
+   mkdir -p ${DSTDIR}/raw
+   cp ${INPUT}     ${DSTDIR}/raw/${setname}_nonredundant.txt
+   cp ${INPUTCLUS} ${DSTDIR}/raw/${setname}.txt
+   (
+      cd ${DSTDIR}/raw
+      zip ${setname}_nonredundant.zip ${setname}_nonredundant.txt
+      zip ${setname}.zip ${setname}.txt
+      rm  ${setname}.txt ${setname}_nonredundant.txt
+   )
    OUTFILE=${DSTDIR}/merged.json
    printf "{\n" > $OUTFILE
    i=0;
