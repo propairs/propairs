@@ -188,7 +188,7 @@ if [ ${rebuild_pdb} -eq 1 ]; then
    mkdir -p pdb_bio_merged
    mkdir -p pdb_dst
    python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU}
-   ${PROPAIRSROOT}/bin/pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst | pplog 1
+   ${PROPAIRSROOT}/bin/0pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst | pplog 1
    # store md5sums for next call
    cp ./pdb.md5     ./pdb.md5_old
    cp ./pdb_bio.md5 ./pdb_bio.md5_old
@@ -417,7 +417,7 @@ if [ "${FULL}" -eq 1 ]; then
       g_statusmessage="importing to database"
       echo ${g_statusmessage}"..." | pplog 0
       rm -f ${CAND}_done
-      ${PROPAIRSROOT}/bin/0importchaindata.sh ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
+      ${PROPAIRSROOT}/bin/1importchaindata.sh ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
       touch ${DBIMP}_done
    fi
    if [ ! -e ${DBIMP}_done ]; then
@@ -481,16 +481,16 @@ if [ ! -e ${WWWDATA}_done ]; then
    SETNAME=$( echo $NAME | sed "s/^run//" | tr -d "_" ) && \
    mkdir -p ./www && cp -r ${PROPAIRSROOT}/propairs-www/* ./www && \
    mkdir -p www/data/ && echo ${WWWNAME} >> www/data/sets.txt && \
-   ${PROPAIRSROOT}/bin/makewebdata.sh -t -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
+   ${PROPAIRSROOT}/bin/5makewebdata.sh -t -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} > ${TMPDIR2}/5wwwdata_log && \
    5wwwraw $SETNAME www/data/${WWWNAME} && \
    echo "   Data tables created. You can start viewing the data!" | pplog 0 && \
    echo "   " | pplog 0 && \
    echo "   Open <OUTPUT_DIRECTORY>/www/database.html" | pplog 0 && \
    echo "   " | pplog 0 && \
    echo "   Creating PDB files and images..." | pplog 0 && \
-   ${PROPAIRSROOT}/bin/makewebdata.sh -p -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
+   ${PROPAIRSROOT}/bin/5makewebdata.sh -p -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
    echo "   PDB files and front images created. Creating images of rotated structures..." | pplog 0 && \
-   ${PROPAIRSROOT}/bin/makewebdata.sh -r -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
+   ${PROPAIRSROOT}/bin/5makewebdata.sh -r -n $SETNAME ${MERGED} ${CLUSTERED} www/data/${WWWNAME} >> ${TMPDIR2}/5wwwdata_log && \
    touch ${WWWDATA}_done
 fi
 if [ ! -e ${WWWDATA}_done ]; then
