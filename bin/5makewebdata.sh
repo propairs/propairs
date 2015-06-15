@@ -245,7 +245,7 @@ function getHeader() {
     echo "-"
     return;
   fi
-  head -n 1 $PDBDATADIR/$1.pdb | cut -c 11-50 | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g";
+  head -n 1 $PDBDATADIR/$1.pdb | cut -c 11-50 | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g"  | sed 's/\\;/;/g';
 }
 
 function getTitle() {
@@ -253,7 +253,7 @@ function getTitle() {
     echo "-"
     return;
   fi
-   grep "^TITLE" $PDBDATADIR/$1.pdb | sed "s/^.\{10\}//" | tr -d "\n" | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g"; printf "\n"
+   grep "^TITLE" $PDBDATADIR/$1.pdb | sed "s/^.\{10\}//" | tr -d "\n" | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g" | sed 's/\\;/;/g'; printf "\n"
 }
 
 function getCompound() {
@@ -261,7 +261,7 @@ function getCompound() {
     echo "-"
     return;
   fi
-   grep "^COMPND" $PDBDATADIR/$1.pdb | sed "s/^.\{10\}//" | tr -d "\n" | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g"; printf "\n"
+   grep "^COMPND" $PDBDATADIR/$1.pdb | sed "s/^.\{10\}//" | tr -d "\n" | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g" | sed 's/\\;/;/g'; printf "\n"
 }
 
 #------------------------------------------------------------------------------
