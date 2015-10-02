@@ -145,7 +145,7 @@ get_dir_hash() {
 
 g_statusmessage="getting PDB files"
 echo ${g_statusmessage}"..." | pplog 0
-if [ "${TESTSET}" != "" ]; then
+if [ "${TESTSET}" != "0" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
    rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
@@ -155,7 +155,7 @@ else
 fi
 get_dir_hash ./pdb > ./pdb.md5
 
-if [ "${TESTSET}" != "" ]; then
+if [ "${TESTSET}" != "0" ]; then
    rsync -av --delete --progress --port=33444 \
    --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
    rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
