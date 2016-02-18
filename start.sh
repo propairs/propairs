@@ -14,6 +14,8 @@ OPTIONS:
    -o <PATH>    path to output directory
    -t <0|1>     0: full search; 1: test search (default)
    -v           enable debug output
+   -s <DATE>    set date for PDB snapshot
+   -l           get list of valid dates to be used as snapshot
 EOF
 exit 1;
 }
@@ -48,14 +50,22 @@ error() {
 trap 'error ${LINENO}' ERR
 declare g_statusmessage=""
 
-
+get_PDB_snapshot_list() {
+   snlist="$(wget ftp://snapshots.rcsb.org/ 2>/dev/null -O - | grep -o '/snapshots.rcsb.org:21/[0-9]*/' | tr "/" " " | awk '{print $2}')"
+   declare -a sna=( $snlist )
+   printf "found %d snapshots:\n" ${#sna[@]}
+   for i in ${!sna[@]}; do
+      printf "   %2d: %s\n" $i ${sna[$i]}
+   done
+}
 
 #-- parse arguments -----------
 
 declare PPROOT=
 declare OUTPUT=
+declare SNAPSHOT=
 declare TESTSET=1
-while getopts "t:p:o:i:v" o; do
+while getopts "t:p:o:i:s:lv" o; do
     case "${o}" in
         t)
             TESTSET=${OPTARG}
@@ -65,7 +75,14 @@ while getopts "t:p:o:i:v" o; do
             ;;
         i)
             PPROOT=${OPTARG}
-            ;;            
+            ;;
+        l)
+            get_PDB_snapshot_list
+            exit 0
+            ;;
+        s)
+            SNAPSHOT=${OPTARG}
+            ;;
         v)
             g_loglevel=1
             ;;
@@ -85,6 +102,7 @@ OUTPUT:       $OUTPUT
 TESTSET:      $TESTSET
 PPROOT:       $PPROOT
 PROPAIRSROOT: $PROPAIRSROOT
+SNAPSHOT:     $SNAPSHOT
 EOI
 
 # set PROPAIRSROOT if defined by argument
@@ -105,6 +123,14 @@ if [ ! -e "${PROPAIRSROOT}"/start.sh ]; then
    usage
 fi
 
+if [ "${SNAPSHOT}" != "" ]; then
+   LIST="$( get_PDB_snapshot_list )"
+   if ! echo "$LIST" | grep -o "${SNAPSHOT}"; then
+      printf "error: unable to find snapshot \"${SNAPSHOT}\". Check internet connection and this list of available snapshots:\n\n"
+      echo "$LIST"
+      exit 1;
+   fi
+fi
 
 
 #-- set variables -----------
@@ -114,7 +140,7 @@ echo ${g_statusmessage} | pplog 0
 export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d`
 
 if [ ! -d "${PYTHONPATH}" ]; then
-   error ${LINENO} "error: Biopython not found in PYTHONPATH=$PYTHONPATH - Did you run make?\n"
+   error ${LINENO} "error: Biopython not found in PYTHONPATH=$PYTHONPATH - Did you run make?"
 fi
 
 # TODO: merge_bio_folder.py has high memory requirements
@@ -142,29 +168,58 @@ get_dir_hash() {
 
 
 #-- get pdb files -----------
+PDBSNAP_HOST=snapshotrsync.rcsb.org
+PDBSNAP_PORT=8730
+PDBSNAP_HOST=pdbjsnap.protein.osaka-u.ac.jp
+PDBSNAP_PORT=873
 
-g_statusmessage="getting PDB files"
-echo ${g_statusmessage}"..." | pplog 0
-if [ "${TESTSET}" != "0" ]; then
-   rsync -av --delete --progress --port=33444 \
-   --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
-else 
-   rsync -av --delete --progress --port=33444 \
-   rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
+
+if [ "$SNAPSHOT" == "" ]; then
+   # use current PDB
+   g_statusmessage="getting PDB files"
+   echo ${g_statusmessage}"..." | pplog 0
+   if [ "${TESTSET}" != "0" ]; then
+      rsync -av --delete --progress --port=33444 \
+      --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
+      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
+   else
+      rsync -av --delete --progress --port=33444 \
+      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
+   fi
+   get_dir_hash ./pdb > ./pdb.md5
+
+   if [ "${TESTSET}" != "0" ]; then
+      rsync -av --delete --progress --port=33444 \
+      --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
+      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+   else
+      rsync -av --delete --progress --port=33444 \
+      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+   fi
+   get_dir_hash ./pdb_bio > ./pdb_bio.md5
+else # use PDB snapshot
+   g_statusmessage="getting PDB files for snapshot ${SNAPSHOT}"
+   echo ${g_statusmessage}"..." | pplog 0
+   if [ "${TESTSET}" != "0" ]; then
+      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+      --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
+      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
+   else
+      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
+   fi
+   get_dir_hash ./pdb > ./pdb.md5
+
+   if [ "${TESTSET}" != "0" ]; then
+      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+      --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
+      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+   else
+      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+   fi
+   get_dir_hash ./pdb_bio > ./pdb_bio.md5
 fi
-get_dir_hash ./pdb > ./pdb.md5
-
-if [ "${TESTSET}" != "0" ]; then
-   rsync -av --delete --progress --port=33444 \
-   --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-else
-   rsync -av --delete --progress --port=33444 \
-   rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-fi
-get_dir_hash ./pdb_bio > ./pdb_bio.md5
-
 
 
 #-- prepare pdb files -----------
@@ -207,6 +262,9 @@ declare SUFFIX=
 PDBSET=
 FULL=1
 DATE=$(date +%y%m%d)
+if [ "$SNAPSHOT" != "" ]; then
+   DATE=$SNAPSHOT
+fi
 SUFFIX="test"
 NAME="run"${DATE}${SUFFIX}"_"
 # return to initial directory
