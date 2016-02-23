@@ -267,7 +267,9 @@ DATE=$(date +%y%m%d)
 if [ "$SNAPSHOT" != "" ]; then
    DATE=$SNAPSHOT
 fi
-SUFFIX="test"
+if [ "${TESTSET}" != "0" ]; then
+	SUFFIX="test"
+fi
 NAME="run"${DATE}${SUFFIX}"_"
 # return to initial directory
 #trap "{ cd - ; exit 255; }" SIGINT
