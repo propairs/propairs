@@ -505,7 +505,7 @@ fi
 if [ ! -e ${ALIGNED}_done ]; then
    g_statusmessage="calculating interface partitions / unbound alignments"
    echo ${g_statusmessage}"..." | pplog 0              
-   rm -f ${CLUSTER}_done
+   rm -f ${CLUSTERED}_done
    2alignunbound ${ALIGNED} ${TMPDIR2}/2aligned_log "${PDBDIR}" "${CAND}" && \
    touch ${ALIGNED}_done
 #   printf "  "
@@ -518,7 +518,7 @@ fi
 if [ ! -e ${CLUSTERED}_done ]; then
    g_statusmessage="clustering interfaces"
    echo ${g_statusmessage}"..." | pplog 0               
-   rm -f ${CLUSTERED}_done
+   rm -f ${MERGED}_done
    3clusterinterfaces ${CLUSTERED} ${TMPDIR2}/3cluster_log "${PDBDIR}" "${ALIGNED}" && \
    touch ${CLUSTERED}_done
 fi
@@ -530,6 +530,7 @@ fi
 if [ ! -e ${MERGED}_done ]; then
    g_statusmessage="generating non-redundant dataset"
    echo ${g_statusmessage}"..." | pplog 0   
+   rm -f ${WWWDATA}_done
    4mergepartners ${MERGED} ${TMPDIR2}/4merge_log ${CLUSTERED} && \
    touch ${MERGED}_done
 fi
