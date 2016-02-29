@@ -200,6 +200,8 @@ if [ "$SNAPSHOT" == "" ]; then
 else # use PDB snapshot
    g_statusmessage="getting PDB files for snapshot ${SNAPSHOT}"
    echo ${g_statusmessage}"..." | pplog 0
+   # remove any symlinks
+   find -type l -exec rm {} \;
    if [ "${TESTSET}" != "0" ]; then
       rsync -av --delete --progress --port=${PDBSNAP_PORT} \
       --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
@@ -209,7 +211,7 @@ else # use PDB snapshot
       ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
    fi
    # fix PDB filenames for old snapshots
-   find pdb -name "*.Z" -exec bash -c 'mv {} $(echo {} | sed "s/.Z$/.gz/")' \;
+   find pdb -name "*.Z" -exec bash -c 'ln -s -f $(pwd)/{} $(pwd)/$(echo {} | sed "s/.Z$/.gz/")' \;
    get_dir_hash ./pdb > ./pdb.md5
 
    if [ "${TESTSET}" != "0" ]; then
