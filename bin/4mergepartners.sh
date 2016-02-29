@@ -208,6 +208,7 @@ function sortClusterCandidates() {
    awk -v ica1=${BNUMI1CA} -v ica2=${BNUMI2CA} '$ica2 != "" { printf "%s", $0; printf " %s\n", $ica1*$ica2; }' | \
    sort \
    -k${NUMCOLS},${NUMCOLS}rn \
+   -k${BNUMS2BONDS},${BNUMS2BONDS}n \
    -k${BNUMICHAINS},${BNUMICHAINS}n \
    -k${BNUMGAPS},${BNUMGAPS}n \
    -k${BNUMNONICHAINS},${BNUMNONICHAINS}n \

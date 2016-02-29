@@ -26,40 +26,41 @@ BNUMI2CA=15        # number of C-alpha atoms of interface CBI2
 
 BNUMNONICHAINS=16  # number of non-interface chains (#CB1+#CB2X)
 BNUMCOF=17         # number of cofactors found in interface
+BNUMS2BONDS=18     # number of disulfide bonds found in interface
 
-CB1=18             # binding partner involving the CCsub (aligned with CU1)
-CB2X=19            # complementary part (not aligned, but connected to SEEDCB2)
+CB1=19             # binding partner involving the CCsub (aligned with CU1)
+CB2X=20            # complementary part (not aligned, but connected to SEEDCB2)
 
 ### unbound
 
-UNUMCHAINS=20        # number of chains from SEEDPU aligned to SEEDPC (#CU1)
-UNUMGAPS=21          # number fo gaps found at residues in the interface region of CU1
-UNUMXCHAINS=22       # number of additional chains (#CU1-#CB1)
-UALIGNEDIRATIO=23    # fraction of CB1:CB2 interface residues relocated in CU1
-UNUMMATCHEDCOF=24    # number of cofactors in SEEDPU matched with in SEEDPB
-UNUMUNMATCHEDCOF=25  # number of cofactors in SEEDPU not matched to any in SEEDPB
-UIRMSD=26            # interface RMSD of CU1 superimposed to CB1
-UNUMCLASHES=27       # number of C-alpha clashes of CU1 with CB2X
+UNUMCHAINS=21        # number of chains from SEEDPU aligned to SEEDPC (#CU1)
+UNUMGAPS=22          # number fo gaps found at residues in the interface region of CU1
+UNUMXCHAINS=23       # number of additional chains (#CU1-#CB1)
+UALIGNEDIRATIO=24    # fraction of CB1:CB2 interface residues relocated in CU1
+UNUMMATCHEDCOF=25    # number of cofactors in SEEDPU matched with in SEEDPB
+UNUMUNMATCHEDCOF=26  # number of cofactors in SEEDPU not matched to any in SEEDPB
+UIRMSD=27            # interface RMSD of CU1 superimposed to CB1
+UNUMCLASHES=28       # number of C-alpha clashes of CU1 with CB2X
 
-CU1=28               # chains of SEEDPU matched with CB1 + appended chains 
+CU1=29               # chains of SEEDPU matched with CB1 + appended chains 
                      #          (use only first #CB1 chains for alignment)
 
-ROT1=29              # transformation matrix to superimpose CU1 to CB1 - begin
-ROT2=30
-ROT3=31
-ROT4=32
-ROT5=33
-ROT6=34
-ROT7=35
-ROT8=36
-ROT9=37
-ROT10=38
-ROT11=39
-ROT12=40             # transformation matrix to superimpose CU1 to CB1 - end
+ROT1=30              # transformation matrix to superimpose CU1 to CB1 - begin
+ROT2=31
+ROT3=32
+ROT4=33
+ROT5=34
+ROT6=35
+ROT7=36
+ROT8=37
+ROT9=38
+ROT10=39
+ROT11=41
+ROT12=42             # transformation matrix to superimpose CU1 to CB1 - end
 
 ### cofactor
 
-COF=41 # A ";"-separated list of cofactor that are found in the interface of 
+COF=42 # A ";"-separated list of cofactor that are found in the interface of 
        #     CBI1:CBI2 (XXX,) or in the interface region of CU1 (,XXX).
        #     Assignments of bound-unbound are denoted ","-separated (XXX,XXX).
        #
@@ -74,11 +75,11 @@ COF=41 # A ";"-separated list of cofactor that are found in the interface of
 
 ### cluster
 
-CLUSID=42       # cluster ID of CBI1:CBI2 interface
-CLUSMEMID=43    # member id within cluster
-CLUSMEDDIST=44  # distance to medoid of cluster
+CLUSID=43       # cluster ID of CBI1:CBI2 interface
+CLUSMEMID=44    # member id within cluster
+CLUSMEDDIST=45  # distance to medoid of cluster
 
-NUMCOLS=45
+NUMCOLS=46
 
-TABLEHEADER="SEEDIDX  SEEDPB  SEEDCB1  SEEDCB2  SEEDPU  SEEDCU1  STATUS  CBI1  CBI2  BNUMICHAINS  BNUMGAPS BNUMI1GAPS BNUMI2GAPS BNUMI1CA BNUMI2CA BNUMNONICHAINS  BNUMCOF  CB1     CB2X    UNUMCHAINS  UNUMGAPS  UNUMXCHAINS  UALIGNEDIRATIO  UNUMMATCHEDCOF  UNUMUNMATCHEDCOF  UIRMSD  UNUMCLASHES  CU1           ROT1   ROT2   ROT3   ROT4   ROT5   ROT6   ROT7   ROT8   ROT9   ROT10    ROT11    ROT12    COF CLUSID CLUSMEMID CLUSMEDDIST"
+TABLEHEADER="SEEDIDX  SEEDPB  SEEDCB1  SEEDCB2  SEEDPU  SEEDCU1  STATUS  CBI1  CBI2  BNUMICHAINS  BNUMGAPS BNUMI1GAPS BNUMI2GAPS BNUMI1CA BNUMI2CA BNUMNONICHAINS  BNUMCOF  BNUMS2BONDS  CB1     CB2X    UNUMCHAINS  UNUMGAPS  UNUMXCHAINS  UALIGNEDIRATIO  UNUMMATCHEDCOF  UNUMUNMATCHEDCOF  UIRMSD  UNUMCLASHES  CU1           ROT1   ROT2   ROT3   ROT4   ROT5   ROT6   ROT7   ROT8   ROT9   ROT10    ROT11    ROT12    COF CLUSID CLUSMEMID CLUSMEDDIST"
 

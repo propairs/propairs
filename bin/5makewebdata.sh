@@ -316,6 +316,7 @@ function writeJsonRow() {
    RBIGAPS=${cols1[$BNUMGAPS-1]}
    RBCOF=${cols1[$COF-1]}
    RBNUMICA=$(( cols1[$BNUMI1CA-1] + cols1[$BNUMI2CA-1] ))
+   RBNUMS2=${cols1[$BNUMS2BONDS-1]}
 
    RU1P=${cols1[$SEEDPU-1]}
    RU1C=${cols1[$CU1-1]}
@@ -345,6 +346,7 @@ echo "  {
    \"bName\" : \"$RBP $RBC1:$RBC2\",
    \"bType\" : \"`getHeader ${RBP}`\",
    \"bNumCa\" : \"${RBNUMICA}\",
+   \"bNumS2\" : \"${RBNUMS2}\",
    \"bCof\" : `parseBCofactors ${RBCOF}`,
    \"u1Name\" : \"${RU1P} ${RU1C}\",
    \"u1Sim\" : \"${RU1SIM}\",
