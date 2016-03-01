@@ -54,7 +54,6 @@ do
             COLUMNS=
             for i in "${cols[@]:0:1}"; do
                COLUMNS=${COLUMNS}'$'"$i"
-               echo "1" "$i"
             done
             for i in "${cols[@]:1}"; do
                COLUMNS=${COLUMNS}',''$'"$i"

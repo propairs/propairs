@@ -341,7 +341,8 @@ function 1findcandidates {
       return 1
    fi
    # format output
-   formatTable ${MOUTFILE} 6
+   source ${PROPAIRSROOT}/config/columns_def.sh
+   formatTable ${MOUTFILE} ${SEEDCU1}
    # print info
    printf "  %s seeds generated\n" "`tail -n +2 ${MOUTFILE} | wc -l`" | pplog 1
 }
@@ -361,7 +362,8 @@ function 2alignunbound {
    # align
    ${XTALDIR}/src/xtalcompunbound/xtalcompunbound ${MPDBDIR} ${MCAND} 2> ${MLOGFILE} > ${MOUTFILE} || return 1
    # format output
-   formatTable ${MOUTFILE} 41
+   source ${PROPAIRSROOT}/config/columns_def.sh
+   formatTable ${MOUTFILE} ${ROT12}
    # print info
    printf "   %s seeds checked\n" "`tail -n +2 ${MOUTFILE} | wc -l`" | pplog 0
    printf "   %s valid alignments\n" "`tail -n +2 ${MOUTFILE} | grep -v error | wc -l`" | pplog 0
@@ -384,7 +386,8 @@ function 3clusterinterfaces {
    if [ `cat ${MOUTFILE} | wc -w` -eq 0 ]; then
       return 1
    fi
-   formatTable ${MOUTFILE} 44
+   source ${PROPAIRSROOT}/config/columns_def.sh
+   formatTable ${MOUTFILE} ${CLUSMEDDIST}
    
    # write out interface score vs. sequence ID
    cat ${MLOGFILE} | grep "^intsc" | gzip - > ${MLOGFILE}_intscore.gz
