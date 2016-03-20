@@ -143,13 +143,6 @@ if [ ! -d "${PYTHONPATH}" ]; then
    error ${LINENO} "error: Biopython not found in PYTHONPATH=$PYTHONPATH - Did you run make?"
 fi
 
-# TODO: merge_bio_folder.py has high memory requirements
-#       if we lower them, we can use more cores per default
-NUMCPU=`cat /proc/cpuinfo | grep "^processor" | wc -l`
-NUMCPU=$(( NUMCPU / 4 ))
-if [ $NUMCPU -lt 1 ]; then
-   NUMCPU=1
-fi
 
 export PDBDATADIR=${OUTPUT}/pdb_dst/
 
@@ -246,6 +239,12 @@ if [ ${rebuild_pdb} -eq 1 ]; then
    # create data
    mkdir -p pdb_bio_merged
    mkdir -p pdb_dst
+   # TODO: merge_bio_folder.py has high memory requirements
+   #       if we lower them, we can use more cores per default
+   local NUMCPU=`cat /proc/cpuinfo | grep "^processor" | wc -l`
+   if [ $NUMCPU -lt 1 ]; then
+      NUMCPU=1
+   fi
    python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU}
    ${PROPAIRSROOT}/bin/0pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst | pplog 1
    # store md5sums for next call
