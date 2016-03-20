@@ -241,7 +241,7 @@ if [ ${rebuild_pdb} -eq 1 ]; then
    mkdir -p pdb_dst
    # TODO: merge_bio_folder.py has high memory requirements
    #       if we lower them, we can use more cores per default
-   local NUMCPU=`cat /proc/cpuinfo | grep "^processor" | wc -l`
+   NUMCPU=`cat /proc/cpuinfo | grep "^processor" | wc -l`
    if [ $NUMCPU -lt 1 ]; then
       NUMCPU=1
    fi
