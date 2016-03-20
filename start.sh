@@ -125,7 +125,7 @@ fi
 
 if [ "${SNAPSHOT}" != "" ]; then
    LIST="$( get_PDB_snapshot_list )"
-   if ! echo "$LIST" | grep -o "${SNAPSHOT}"; then
+   if ! echo "$LIST" | grep -o "${SNAPSHOT}" > /dev/null; then
       printf "error: unable to find snapshot \"${SNAPSHOT}\". Check internet connection and this list of available snapshots:\n\n"
       echo "$LIST"
       exit 1;
