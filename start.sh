@@ -246,8 +246,8 @@ if [ ${rebuild_pdb} -eq 1 ]; then
       NUMCPU=1
    fi
    MEMKB=$(cat /proc/meminfo | grep ^MemTotal | awk '{print $2}' )
-   python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU} --maxmem ${MEMKB}  | pplog 1
    echo "Using ${NUMCPU} CPUs and ${MEMKB} kB memory" | pplog 0
+   python $PROPAIRSROOT/pdb-merge-bio/merge_bio_folder.py --numthreads ${NUMCPU} --maxmem ${MEMKB}  | pplog 1
    ${PROPAIRSROOT}/bin/0pdbbio_merge_model.sh pdb pdb_bio_merged/ pdb_dst | pplog 1
    # store md5sums for next call
    cp ./pdb.md5     ./pdb.md5_old
