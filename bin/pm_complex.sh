@@ -243,7 +243,7 @@ EOF
 ### set pymol path
 
 if [ "$PYMOLBIN" == "" ]; then
-   PMCMD=$(which pymol)
+   PYMOLBIN=$(which pymol)
 fi
 PMCMD="${PYMOLBIN} $PMARGS"
 
