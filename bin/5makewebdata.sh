@@ -167,6 +167,7 @@ function cofdetailB() {
    LISTB1="${LISTB1%?}"
    printf "[%s]" "$LISTB1"
 }
+export -f cofdetailB
 
 # unbound cofactors
 function cofdetailB2() {
@@ -191,6 +192,7 @@ function cofdetailB2() {
    LISTB1="${LISTB1%?}"
    printf "[%s]" "$LISTB1"
 }
+export -f cofdetailB2
 
 function cofdetailI() {
    if [ "$1" == "-" ]; then
@@ -214,6 +216,7 @@ function cofdetailI() {
    LISTB1="${LISTB1%?}"
    printf "%s" "$LISTB1"
 }
+export -f cofdetailI
 
 function cofdetailU() {
    if [ "$1" == "-" ]; then
@@ -237,6 +240,7 @@ function cofdetailU() {
    LISTB1="${LISTB1%?}"
    printf "[%s]" "$LISTB1"
 }
+export -f cofdetailU
 
 #------------------------------------------------------------------------------
 
@@ -247,6 +251,7 @@ function getHeader() {
   fi
   head -n 1 $PDBDATADIR/$1.pdb | cut -c 11-50 | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g"  | sed 's/\\;/;/g';
 }
+export -f getHeader
 
 function getTitle() {
   if [ "$1" == "-" ]; then
@@ -255,6 +260,7 @@ function getTitle() {
   fi
    grep "^TITLE" $PDBDATADIR/$1.pdb | sed "s/^.\{10\}//" | tr -d "\n" | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g" | sed 's/\\;/;/g'; printf "\n"
 }
+export -f getTitle
 
 function getCompound() {
   if [ "$1" == "-" ]; then
@@ -263,6 +269,7 @@ function getCompound() {
   fi
    grep "^COMPND" $PDBDATADIR/$1.pdb | sed "s/^.\{10\}//" | tr -d "\n" | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g" | sed 's/\\;/;/g'; printf "\n"
 }
+export -f getCompound
 
 #------------------------------------------------------------------------------
 MAX_CHAINS_LEN1=5
@@ -498,6 +505,7 @@ echo "{
 
 echo "}"
 }
+export -f writeJsonData
 
 #------------------------------------------------------------------------------
 
@@ -567,72 +575,120 @@ if [ $(( task & TASK_DATTABLE )) -ne 0 ]; then
    printf "}\n" >> $OUTFILE
 fi
 
+#------------------------------------------------------------------------------
+
+write_pdbfiles() {
+   echo ${PROPAIRSROOT}
+   source ${PROPAIRSROOT}/config/columns_def.sh
+   IFS=","
+   read -a SIDX < <(echo "$1")
+   unset IFS
+   INDEX1=${SIDX[0]}
+   INDEX2=${SIDX[1]}
+   echo "writing info $INDEX1"
+   INFODIR=${DSTDIR}/info/$INDEX1
+   mkdir -p $INFODIR
+   # write json details
+   writeJsonData ${INPUT} $INPUTCLUS $INDEX1 $INDEX2 > ${INFODIR}/$INDEX1.json
+   # write pdb and images
+   ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
+   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -o ${DSTDIR}/pdb/${INDEX1} -w 400 -f ${INFODIR}/img $ARGS
+   # full first
+   (
+      find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
+   )
+   # preview 
+   convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
+   # remove pngs
+   (
+      find ${INFODIR}/ -name '*.png' -exec rm {} \;
+   )
+}
+export -f write_pdbfiles
+      
 # write detail info
 if [ $(( task & TASK_PDBFILES )) -ne 0 ]; then
-   i=0;
-   while read ROWPAIR; do
-      echo "writing info $i"
-      # split rowpair to two seedidx at ","
-      IFS=","
-      read -a SIDX < <(echo "$ROWPAIR")
-      unset IFS
-      INDEX1=${SIDX[0]}
-      INDEX2=${SIDX[1]}
-
-      INFODIR=${DSTDIR}/info/$INDEX1
-      mkdir -p $INFODIR
-      i=$((i+1))
-      # write json details
-      writeJsonData ${INPUT} $INPUTCLUS $INDEX1 $INDEX2 > ${INFODIR}/$INDEX1.json
-      # write pdb and images
-      ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
-      ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -o ${DSTDIR}/pdb/${INDEX1} -w 400 -f ${INFODIR}/img $ARGS
-      # full first
-      (
-         find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
-      )
-      # preview 
-      convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
-      # remove pngs
-      (
-         find ${INFODIR}/ -name '*.png' -exec rm {} \;
-      )
-   done < <(echo "$ROWPAIRS")
+   export DSTDIR
+   export INPUT
+   export INPUTCLUS 
+   parallel \
+      --sshlogin : --load 100% --noswap --memfree 100M \
+      --env PROPAIRSROOT \
+      --env write_pdbfiles \
+      --env DSTDIR \
+      --env INPUT \
+      --env INPUTCLUS \
+      --env writeJsonData \
+      --env cofdetailB \
+      --env cofdetailB2 \
+      --env cofdetailI \
+      --env cofdetailU \
+      --env getHeader \
+      --env getTitle \
+      --env getCompound \
+      --env PDBDATADIR \
+      --env XTALDIR \
+      write_pdbfiles {} ::: "$ROWPAIRS"
 fi
+
+#------------------------------------------------------------------------------
+
+write_otherimg() {
+ echo ${PROPAIRSROOT}
+   source ${PROPAIRSROOT}/config/columns_def.sh
+   IFS=","
+   read -a SIDX < <(echo "$1")
+   unset IFS
+   INDEX1=${SIDX[0]}
+   INDEX2=${SIDX[1]}
+   echo "writing info $INDEX1"
+
+   INFODIR=${DSTDIR}/info/$INDEX1
+   mkdir -p $INFODIR
+   i=$((i+1))
+   # write images
+   ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
+   ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -w 400 -r -f ${INFODIR}/img $ARGS
+   # full
+   (
+      find ${INFODIR} -name '*.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 60 {} \;
+   )
+   # full first
+   (
+      find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
+   )
+   # preview 
+   convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
+   # remove pngs
+   (
+      find ${INFODIR}/ -name '*.png' -exec rm {} \;
+   )
+}
+export -f write_otherimg
 
 # write rotated images
 if [ $(( task & TASK_OTHERIMG )) -ne 0 ]; then
-   i=0;
-   while read ROWPAIR; do
-      echo "writing info $i"
-      # split rowpair to two seedidx at ","
-      IFS=","
-      read -a SIDX < <(echo "$ROWPAIR")
-      unset IFS
-      INDEX1=${SIDX[0]}
-      INDEX2=${SIDX[1]}
-
-      INFODIR=${DSTDIR}/info/$INDEX1
-      mkdir -p $INFODIR
-      i=$((i+1))
-      # write images
-      ARGS=`${PROPAIRSROOT}/bin/select_aligned.sh ${INPUT} ${INDEX1} ${INDEX2}`
-      ${PROPAIRSROOT}/bin/pm_complex.sh ${PMARGS} -w 400 -r -f ${INFODIR}/img $ARGS
-      # full
-      (
-         find ${INFODIR} -name '*.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 60 {} \;
-      )
-      # full first
-      (
-         find ${INFODIR}/ -name '*_01.png' -exec mogrify -rotate -0 -format jpg -strip -interlace Plane -quality 95  {} \;
-      )
-      # preview 
-      convert -rotate -0 -resize x20 -gravity Center -crop 20x20+0+0 -strip  ${INFODIR}/img_p0011_01.png ${DSTDIR}/preview/${INDEX1}.jpg
-      # remove pngs
-      (
-         find ${INFODIR}/ -name '*.png' -exec rm {} \;
-      )
-   done < <(echo "$ROWPAIRS")
+   export DSTDIR
+   export INPUT
+   export INPUTCLUS
+   parallel \
+      --sshlogin : --load 100% --noswap --memfree 100M \
+      --env PROPAIRSROOT \
+      --env write_otherimg \
+      --env DSTDIR \
+      --env INPUT \
+      --env INPUTCLUS \
+      --env writeJsonData \
+      --env cofdetailB \
+      --env cofdetailB2 \
+      --env cofdetailI \
+      --env cofdetailU \
+      --env getHeader \
+      --env getTitle \
+      --env getCompound \
+      --env PDBDATADIR \
+      --env XTALDIR \
+      write_otherimg {} ::: "$ROWPAIRS"
 fi
 
 

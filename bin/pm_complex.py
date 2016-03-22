@@ -3,7 +3,7 @@ cmd.bg_color('white')
 cmd.set('sphere_transparency','0.3')
 cmd.set("ray_orthoscopic", "on")
 cmd.set("ignore_case", "0")
-
+cmd.set("max_threads", "1") # parallelization is done externally
 
 cmd.set_color("pred"  ,[0.55, 0.00, 0.00])
 cmd.set_color("pgreen",[0.00, 0.35, 0.00])

@@ -5,6 +5,7 @@ FROM ubuntu:14.04
 RUN apt-get update && apt-get install -y \ 
    bsdmainutils \
    make \
+   parallel \
    rsync \
    wget \
    zip
