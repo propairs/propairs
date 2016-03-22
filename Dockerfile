@@ -49,7 +49,8 @@ RUN apt-get update && apt-get install -y \
 COPY . /opt/propairs
 RUN cd /opt/propairs && make -j 5
 ENV PROPAIRSROOT /opt/propairs/
-
+# used by parallel
+ENV SHELL /bin/bash
 
 # path where to write dataset and temp files
 VOLUME ["/data/"]

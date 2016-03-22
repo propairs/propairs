@@ -612,7 +612,7 @@ if [ $(( task & TASK_PDBFILES )) -ne 0 ]; then
    export INPUT
    export INPUTCLUS 
    parallel \
-      --sshlogin : --load 100% --noswap --memfree 100M \
+      --sshlogin : --load 100% --noswap \
       --env PROPAIRSROOT \
       --env write_pdbfiles \
       --env DSTDIR \
@@ -672,7 +672,7 @@ if [ $(( task & TASK_OTHERIMG )) -ne 0 ]; then
    export INPUT
    export INPUTCLUS
    parallel \
-      --sshlogin : --load 100% --noswap --memfree 100M \
+      --sshlogin : --load 100% --noswap \
       --env PROPAIRSROOT \
       --env write_otherimg \
       --env DSTDIR \
