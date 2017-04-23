@@ -12,6 +12,8 @@ declare TASK_OTHERIMG=0x4 # all other images
 declare task=0
 declare setname=
 
+export SHELL=/bin/bash
+
 usage()
 {
 cat << EOF
@@ -605,12 +607,13 @@ write_pdbfiles() {
    )
 }
 export -f write_pdbfiles
-      
+
+
 # write detail info
 if [ $(( task & TASK_PDBFILES )) -ne 0 ]; then
    export DSTDIR
    export INPUT
-   export INPUTCLUS 
+   export INPUTCLUS
    parallel \
       --sshlogin : --load 100% --noswap \
       --env PROPAIRSROOT \
