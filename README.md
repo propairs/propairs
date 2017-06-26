@@ -48,7 +48,6 @@ After the step above, these datasets will be relatively small, since only a subs
 ### Requirements
 
 * X86-64 machine with Git and Docker installed (see below for other architectures)
-* At least 4GB RAM per core
 * ~200GB of free disk space
 * Internet connection
 
