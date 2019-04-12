@@ -17,12 +17,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
    libpq-dev \
    sudo \
    netcat-traditional
-RUN echo "local all  postgres  peer " >  /etc/postgresql/9.3/main/pg_hba.conf && \
-   echo  "local all  all       trust" >> /etc/postgresql/9.3/main/pg_hba.conf && \
-   /etc/init.d/postgresql start && \
-   sudo -u postgres createuser -s ppiuser && \
-   sudo -u postgres createdb -O ppiuser ppidb1
-
 
 # biopython dependencies
 RUN apt-get update && apt-get install -y \
