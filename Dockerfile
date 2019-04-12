@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
  
   
 #propairs dependencies
@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y \
    rsync \
    wget \
    zip
+
 # postgres
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
-   postgresql-9.3 \
-   postgresql-contrib-9.3 \
-   postgresql-9.3-postgis-2.1 \
+   postgresql \
+   postgresql-contrib \
    libpq-dev \
    sudo \
    netcat-traditional
@@ -26,18 +26,15 @@ RUN echo "local all  postgres  peer " >  /etc/postgresql/9.3/main/pg_hba.conf &&
 
 # biopython dependencies
 RUN apt-get update && apt-get install -y \
+   build-essential \
    python2.7 \
    python2.7-dev \
    python2.7-numpy
 
-
 # xtal dependencies
-RUN apt-get update && apt-get install -y \ 
-   g++-4.8 \
-   make \
-   wget &&\
-   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
-
+RUN apt-get update && apt-get install -y \
+   g++-4.9 && \
+   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
 
 # web-data dependencies
 RUN apt-get update && apt-get install -y \ 
