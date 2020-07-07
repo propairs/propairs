@@ -1,22 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -ETeuo pipefail
 
 source ${PROPAIRSROOT}/config/global.conf
 source ${PROPAIRSROOT}/config/tables_def.sh
 
 
-INPCON=`readlink -e "$1"`
-INPGRP=`readlink -e "$2"`
-INPSIM=`readlink -e "$3"`
+declare -r sqlite_db=$1
+INPCON=`readlink -e "$2"`
+INPGRP=`readlink -e "$3"`
+INPSIM=`readlink -e "$4"`
 
 
 function doquery {
-printf "executing ... " >&2
-psql -d ppidb1 -U ppiuser -c "$1" -o /dev/null && echo "OK" >&2
+   printf "executing ... " >&2
+   echo "$1" | sqlite3 ${sqlite_db} && echo "OK" >&2
 }
-
-
-TMPFILE=`mktemp`
-
 
 QUERY=$(
 cat << EOF
@@ -30,7 +29,9 @@ CREATE TABLE ${TNAMECON} (
     intsize integer NOT NULL
 );
 -- import
-COPY ${TNAMECON} FROM '${INPCON}' DELIMITERS ' ' CSV;
+.mode csv
+.separator ' '
+.import ${INPCON} ${TNAMECON}
 
 -- derive
 ALTER TABLE ${TNAMECON} ADD COLUMN p VARCHAR(4);
@@ -61,7 +62,9 @@ CREATE TABLE ${TNAMEGRP} (
     grp character(1) NOT NULL
 );
 -- import
-COPY ${TNAMEGRP} FROM '${INPGRP}' DELIMITERS ' ' CSV;
+.mode csv
+.separator ' '
+.import ${INPGRP} ${TNAMEGRP}
 
 -- derive
 ALTER TABLE ${TNAMEGRP} ADD COLUMN p VARCHAR(4);
@@ -93,7 +96,10 @@ CREATE TABLE ${TNAMESIM} (
     sid numeric(8,6) NOT NULL
 );
 -- import
-COPY ${TNAMESIM} FROM '${INPSIM}' DELIMITERS ' ' CSV;
+.mode csv
+.separator ' '
+.import ${INPSIM} ${TNAMESIM}
+
 
 -- derive
 ALTER TABLE ${TNAMESIM} ADD COLUMN p1 VARCHAR(4);
@@ -116,21 +122,3 @@ doquery "${QUERY}"
 if [ $? -ne 0 ]; then
    exit 1
 fi
-
-
-
-QUERY=$(
-cat << EOF
--- update statistics for query planner 
-ANALYZE VERBOSE ${TNAMECON};
-ANALYZE VERBOSE ${TNAMEGRP};
-ANALYZE VERBOSE ${TNAMESIM};
-EOF
-)
-
-
-doquery "${QUERY}"
-if [ $? -ne 0 ]; then
-   exit 1
-fi
-

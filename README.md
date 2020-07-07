@@ -61,7 +61,7 @@ On Ubuntu 14.04 you can install Git and Docker like this:
 
 ## Without Docker
 
-You can compile the ProPairs C++ code without Docker on different architectures (it even runs on a Raspberry Pi). The Dockerfile will give you an idea how to set up your system. Be sure to have the PostgreSQL DBMS configured and running.
+You can compile the ProPairs C++ code without Docker on different architectures (it even runs on a Raspberry Pi). The Dockerfile will give you an idea how to set up your system. 
 
 Once the dependencies are installed get the source code and run "make":
   ```

@@ -1,7 +1,15 @@
 BIOPYTHON_VERSION=1.65
 
-all: biopython
+all: biopython 3rdparty
 	$(MAKE) -C xtal
+
+.PHONY: prepare_offline
+prepare_offline:
+	$(MAKE) -C 3rdparty download
+
+.PHONY: 3rdparty
+3rdparty:
+	$(MAKE) -C 3rdparty all
 
 biopython_src:
 	wget -O biopython.tar.gz http://biopython.org/DIST/biopython-$(BIOPYTHON_VERSION).tar.gz && \
@@ -16,10 +24,8 @@ clean:
 	$(RM) -R biopython
 	$(MAKE) -C xtal clean
 
-
-
+.PHONY: distclean
 distclean: clean
 	$(MAKE) -C xtal distclean
 	$(RM) -R biopython_src
-	
-
+	$(MAKE) -C 3rdparty clean

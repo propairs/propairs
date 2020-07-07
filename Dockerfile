@@ -10,14 +10,6 @@ RUN apt-get update && apt-get install -y \
    wget \
    zip
 
-# postgres
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
-   postgresql \
-   postgresql-contrib \
-   libpq-dev \
-   sudo \
-   netcat-traditional
-
 # biopython dependencies
 RUN apt-get update && apt-get install -y \
    build-essential \

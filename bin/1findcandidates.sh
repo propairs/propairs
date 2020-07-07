@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -ETeuo pipefail
 
 source ${PROPAIRSROOT}/config/tables_def.sh
 
+declare -r sqlite_db=$1
 
 _DEBUG=0
 
@@ -17,7 +20,8 @@ function get_bound {
 
    QUERY=$(
    cat << EOF
-select c.pdb,c.c1,c.c2 from ${TNAMECON} c where TRUE
+.separator "," ";"
+select c.pdb,c.c1,c.c2 from ${TNAMECON} c where 1
 and c.intsize > 10
 and c.p='${PDBCODE}'
 -- only first biounit
@@ -27,51 +31,51 @@ and (c.c1,c.c2) not in (select d.c,d.grp from ${TNAMEGRP} d where d.pdb=c.pdb)
 and (c.c2,c.c1) not in (select d.c,d.grp from ${TNAMEGRP} d where d.pdb=c.pdb)
 and (c.pdb,c.c1) in 
 ( SELECT grp.pdb,grp.c from ${TNAMEGRP} grp where grp.pdb=c.pdb
-  AND ( FALSE
+  AND ( 0
      OR (grp.pdb,grp.grp) in 
-     ( select a.pdb1,a.c1 from ${TNAMESIM} a where TRUE
+     ( select a.pdb1,a.c1 from ${TNAMESIM} a where 1
 	     and a.pdb1=c.pdb 
 	     and a.sid > 0.8
-	     and ( FALSE
+	     and ( 0
 		     or a.c1 in (SELECT g.grp from ${TNAMEGRP} g where g.pdb=c.pdb and g.c=grp.grp)
 	     )
 	     and (a.pdb2) not in
-	     (	select b.pdb2 from ${TNAMESIM} b where TRUE
+	     (	select b.pdb2 from ${TNAMESIM} b where 1
 		     and b.pdb1=c.pdb 
 		     and b.sid > 0.5
-		     and ( FALSE
+		     and ( 0
 			     or b.c1 in (SELECT g.grp from ${TNAMEGRP} g where g.pdb=c.pdb and g.c=c.c2)
 		     )
 	     )
 	     and (a.pdb2) not in
-	     (	select b.pdb1 from ${TNAMESIM} b where TRUE
+	     (	select b.pdb1 from ${TNAMESIM} b where 1
 		     and b.pdb2=c.pdb 
 		     and b.sid > 0.5
-		     and ( FALSE
+		     and ( 0
 			     or b.c2 in (SELECT g.grp from ${TNAMEGRP} g where g.pdb=c.pdb and g.c=c.c2)
 		     )
 	     )
 	  ) 
      OR (grp.pdb,grp.grp) in 
-     ( select a.pdb2,a.c2 from ${TNAMESIM} a where TRUE
+     ( select a.pdb2,a.c2 from ${TNAMESIM} a where 1
 	     and a.pdb2=c.pdb 
 	     and a.sid > 0.8
-	     and ( FALSE
+	     and ( 0
 		     or a.c2 in (SELECT g.grp from ${TNAMEGRP} g where g.pdb=c.pdb and g.c=grp.grp)
 	     )
 	     and (a.pdb1) not in
-	     (	select b.pdb2 from ${TNAMESIM} b where TRUE
+	     (	select b.pdb2 from ${TNAMESIM} b where 1
 		     and b.pdb1=c.pdb 
 		     and b.sid > 0.5
-		     and ( FALSE
+		     and ( 0
 			     or b.c1 in (SELECT g.grp from ${TNAMEGRP} g where g.pdb=c.pdb and g.c=c.c2)
 		     )
 	     )
 	     and (a.pdb1) not in
-	     (	select b.pdb1 from ${TNAMESIM} b where TRUE
+	     (	select b.pdb1 from ${TNAMESIM} b where 1
 		     and b.pdb2=c.pdb 
 		     and b.sid > 0.5
-		     and ( FALSE
+		     and ( 0
 			     or b.c2 in (SELECT g.grp from ${TNAMEGRP} g where g.pdb=c.pdb and g.c=c.c2)
 		     )
 	     )
@@ -80,7 +84,7 @@ and (c.pdb,c.c1) in
 );
 EOF
    )
-   psql -d ppidb1 -U ppiuser -c "${QUERY}" -t -A -F ',' -R ';' -q
+	 echo "${QUERY}" | sqlite3 ${sqlite_db}
 }
 
 
@@ -91,35 +95,36 @@ function get_unbound {
 
    QUERY=$(
    cat << EOF
-SELECT c.pdb,c.c FROM ${TNAMEGRP} c WHERE TRUE
-AND ( FALSE
+.separator "," ";"
+SELECT c.pdb,c.c FROM ${TNAMEGRP} c WHERE 1
+AND ( 0
   OR (c.pdb,c.grp) IN 
   (
     -- chain must be similar to query chain
-	  SELECT a.pdb2,a.c2 FROM ${TNAMESIM} a WHERE TRUE
+	  SELECT a.pdb2,a.c2 FROM ${TNAMESIM} a WHERE 1
 	  AND a.pdb1='${PDBCODE}'
 	  AND a.sid > 0.8
 	  AND NOT a.p2=a.p1	
-	  AND ( FALSE
+	  AND ( 0
 		  or a.c1 in (SELECT g.grp FROM ${TNAMEGRP} g WHERE g.pdb='${PDBCODE}' AND g.c='${CHAININ}')
 	  )
     -- other chain is not allowed to be similar to something within pdb2 - use pX instead of pdbX to avoid wrong biocells
 	  AND (a.p2) NOT IN
-	  (	SELECT b.p2 FROM ${TNAMESIM} b WHERE TRUE
+	  (	SELECT b.p2 FROM ${TNAMESIM} b WHERE 1
 		  AND b.pdb1='${PDBCODE}'
 		  AND b.sid > 0.5
 		  AND NOT b.p2=b.p1
-		  AND ( FALSE
+		  AND ( 0
 			  or b.c1 in (SELECT g.grp FROM ${TNAMEGRP} g WHERE g.pdb='${PDBCODE}' AND g.c='${CHAINEX}')
 		  )
 	  )
     -- something within pdb2 is not allowed to be similar to other chain - use pX instead of pdbX to avoid wrong biocells
 	  AND (a.p2) NOT IN
-	  (	SELECT b.p1 FROM ${TNAMESIM} b WHERE TRUE
+	  (	SELECT b.p1 FROM ${TNAMESIM} b WHERE 1
 		  AND b.pdb2='${PDBCODE}'
 		  AND b.sid > 0.5
 		  AND NOT b.p2=b.p1
-		  AND ( FALSE
+		  AND ( 0
 			  or b.c2 in (SELECT g.grp FROM ${TNAMEGRP} g WHERE g.pdb='${PDBCODE}' AND g.c='${CHAINEX}')
 		  )
 	  )
@@ -127,30 +132,30 @@ AND ( FALSE
   OR (c.pdb,c.grp) IN 
   (
     -- chain must be similar to query chain
-	  SELECT a.pdb1,a.c1 FROM ${TNAMESIM} a WHERE TRUE
+	  SELECT a.pdb1,a.c1 FROM ${TNAMESIM} a WHERE 1
 	  AND a.pdb2='${PDBCODE}'
 	  AND a.sid > 0.8
 	  AND NOT a.p1=a.p2	
-	  AND ( FALSE
+	  AND ( 0
 		  or a.c2 in (SELECT g.grp FROM ${TNAMEGRP} g WHERE g.pdb='${PDBCODE}' AND g.c='${CHAININ}')
 	  )
     -- other chain is not allowed to be similar to something within pdb2 - use pX instead of pdbX to avoid wrong biocells
 	  AND (a.p1) NOT IN
-	  (	SELECT b.p2 FROM ${TNAMESIM} b WHERE TRUE
+	  (	SELECT b.p2 FROM ${TNAMESIM} b WHERE 1
 		  AND b.pdb1='${PDBCODE}'
 		  AND b.sid > 0.5
 		  AND NOT b.p2=b.p1
-		  AND ( FALSE
+		  AND ( 0
 			  or b.c1 in (SELECT g.grp FROM ${TNAMEGRP} g WHERE g.pdb='${PDBCODE}' AND g.c='${CHAINEX}')
 		  )
 	  )
     -- something within pdb2 is not allowed to be similar to other chain - use pX instead of pdbX to avoid wrong biocells
 	  AND (a.p1) NOT IN
-	  (	SELECT b.p1 FROM ${TNAMESIM} b WHERE TRUE
+	  (	SELECT b.p1 FROM ${TNAMESIM} b WHERE 1
 		  AND b.pdb2='${PDBCODE}'
 		  AND b.sid > 0.5
 		  AND NOT b.p2=b.p1
-		  AND ( FALSE
+		  AND ( 0
 			  or b.c2 in (SELECT g.grp FROM ${TNAMEGRP} g WHERE g.pdb='${PDBCODE}' AND g.c='${CHAINEX}')
 		  )
 	  )  
@@ -159,39 +164,22 @@ AND ( FALSE
 ORDER BY c.pdb,c.c -- LIMIT 1
 EOF
    )
-   psql -d ppidb1 -U ppiuser -c "${QUERY}" -t -A -F ',' -R ';' -q
+	 echo "${QUERY}" | sqlite3 ${sqlite_db}
 }
 
 function get_pdbids {
    QUERY=$(
    cat << EOF
+.separator "," ";"
 SELECT DISTINCT
   ${TNAMECON}.p
 FROM 
-  public.${TNAMECON}
+  ${TNAMECON}
 ORDER BY p;
 EOF
    )
-   psql -d ppidb1 -U ppiuser -c "${QUERY}" -t -A -F ',' -R ';' -q
-}  
-
-
-
-TMPPDBLIST=`mktemp`
-
-# how to handle interruptions?
-trap "echo 'received trap signal'; rm -f $TMPPDBLIST; exit" SIGHUP SIGINT SIGTERM
-
-INPUT=$1
-
-# collect pdb list, if none provided
-if [ ! -e "${INPUT}" ]; then
-    echo "Usage: `basename $0` {INPUTPDBLIST}" >&2
-    echo "input does not exist... query all PDB IDs" >&2
-    get_pdbids | tr ";" "\n" > $TMPPDBLIST
-    INPUT=$TMPPDBLIST
-fi
-
+	echo "${QUERY}" | sqlite3 ${sqlite_db}
+}
 
 
 function find_cand {
@@ -223,19 +211,18 @@ function find_cand {
         printf "%s,%c:%c %s\n" "${PDB}" "${CHAININ}" "${CHAINEX}" "$UROW"
        done
        unset IFS
-      
-      unset IFS
    done
    unset IFS
 }
-   
-   
+
+TMPPDBLIST=`mktemp`
+get_pdbids | tr ";" "\n" > $TMPPDBLIST
+INPUT=$TMPPDBLIST   
+
 # sequential version
 while read PDBCODE; do 
    find_cand ${PDBCODE}
 done < ${INPUT}
-
-
 
 rm -f $TMPPDBLIST
  

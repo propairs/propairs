@@ -2,7 +2,7 @@
 
 set -ETeuo pipefail
 
-declare -r PROPAIRSROOT; PROPAIRSROOT="$( cd "$( dirname $0 )/." && pwd )"
+declare PROPAIRSROOT; PROPAIRSROOT="$( cd "$( dirname $0 )/." && pwd )"; readonly PROPAIRSROOT
 
 usage()
 {
@@ -140,6 +140,7 @@ if [ ! -d "${PYTHONPATH}" ]; then
    error ${LINENO} "error: Biopython not found in PYTHONPATH=$PYTHONPATH - Did you run make?"
 fi
 
+export PATH=${PROPAIRSROOT}/3rdparty/sqlite/bin/:$PATH
 
 export PDBDATADIR=${OUTPUT}/pdb_dst/
 
@@ -261,7 +262,6 @@ fi
 g_statusmessage="initializing propairs variables"
 echo ${g_statusmessage}"..." | pplog 0
 declare SUFFIX=
-PDBSET=
 FULL=1
 DATE=$(date +%y%m%d)
 if [ "$SNAPSHOT" != "" ]; then
@@ -322,15 +322,9 @@ function formatTable {
 function 1findcandidates {
    local MOUTFILE=$1
    local MLOGFILE=$2
-   local MPDBSET=$3
-   local MCAND=$4   
 
-   if [ "${MPDBSET}" != "" -a ! -e "${MPDBSET}" ]; then
-      printf "file \"%s\" not found\n" "${MPDBSET}" >&2
-      return 1
-   fi
    # find seeds
-   ${PROPAIRSROOT}/bin/1findcandidates.sh "${MPDBSET}" 2> ${MLOGFILE} | tr ':' ' '  | tr ',' ' ' | cat -n > ${MOUTFILE}
+   ${PROPAIRSROOT}/bin/1findcandidates.sh ${TMPDIR2}/cand.db 2> ${MLOGFILE} | tr ':' ' '  | tr ',' ' ' | cat -n > ${MOUTFILE}
    # check for errors
    if [ $? -ne 0 ]; then
       return 1
@@ -456,12 +450,7 @@ if [ "${FULL}" -eq 1 ]; then
    if [ ! -e ${TABSIM}_done ]; then
       rm -f ${DBIMP}_done
       INP=${TMPDIR2}/chainsim_pdblist.txt
-      # use subset?
-      if [ "${PDBSET}" == "" ]; then
-         cat ${PDBCODES} > ${INP}
-      else
-         cat ${PDBCODES} | grep -f ${PDBSET} > ${INP}
-      fi
+      cat ${PDBCODES} > ${INP}
       
       # run 
       g_statusmessage="calculating chain similarities"
@@ -482,7 +471,7 @@ if [ "${FULL}" -eq 1 ]; then
       g_statusmessage="importing to database"
       echo ${g_statusmessage}"..." | pplog 0
       rm -f ${CAND}_done
-      ${PROPAIRSROOT}/bin/1importchaindata.sh ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
+      ${PROPAIRSROOT}/bin/1importchaindata.sh ${TMPDIR2}/cand.db ${TABCON} ${TABGRP} ${TABSIM} 2> ${TMPDIR2}/0import_log && \
       touch ${DBIMP}_done
    fi
    if [ ! -e ${DBIMP}_done ]; then
@@ -495,7 +484,7 @@ if [ ! -e ${CAND}_done ]; then
    rm -f ${ALIGNED}_done
    g_statusmessage="generating seeds"
    echo ${g_statusmessage}"..." | pplog 0
-   1findcandidates ${CAND} ${TMPDIR2}/1cand_log ${PDBSET} && \
+   1findcandidates ${CAND} ${TMPDIR2}/1cand_log && \
    touch ${CAND}_done
 fi
 
