@@ -2,16 +2,17 @@
 
 set -ETeuo pipefail
 
+declare -r PROPAIRSROOT; PROPAIRSROOT="$( cd "$( dirname $0 )/." && pwd )"
+
 usage()
 {
 cat << EOF
-usage: $0 [-i <PATH>] -o <PATH> [-t <0|1>]
+usage: $0 -o <PATH> [-t <0|1>]
 
 This script generates the ProPairs dataset
 
 OPTIONS:
    -h           show this message
-   -i <PATH>    path to directoy containing this script
    -o <PATH>    path to output directory
    -t <0|1>     0: full search; 1: test search (default)
    -v           enable debug output
@@ -66,16 +67,13 @@ declare PPROOT=
 declare OUTPUT=
 declare SNAPSHOT=
 declare TESTSET=1
-while getopts "t:p:o:i:s:lv" o; do
+while getopts "t:p:o:s:lv" o; do
     case "${o}" in
         t)
             TESTSET=${OPTARG}
             ;;
         o)
             OUTPUT=${OPTARG}
-            ;;
-        i)
-            PPROOT=${OPTARG}
             ;;
         l)
             get_PDB_snapshot_list
@@ -98,18 +96,16 @@ shift $((OPTIND-1))
 
 #-- check arguments -----------
 
+: "${PROPAIRSROOT:=$PPROOT}"
+
 pplog 1 << EOI
 OUTPUT:       $OUTPUT
 TESTSET:      $TESTSET
-PPROOT:       $PPROOT
-PROPAIRSROOT: $PROPAIRSROOT
 SNAPSHOT:     $SNAPSHOT
 EOI
 
 # set PROPAIRSROOT if defined by argument
-if [ "${PPROOT}" != "" ]; then
-   export PROPAIRSROOT=${PPROOT}
-fi
+export PROPAIRSROOT
 
 # test OUTPUT directory
 mkdir -p "${OUTPUT}"
