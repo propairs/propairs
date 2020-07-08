@@ -1,0 +1,5 @@
+3rdparty/*
+!3rdparty/Makefile
+!3rdparty/make_sqlite.mk
+env/*
+ppdata/*

@@ -1,6 +1,8 @@
+BASEDIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 BIOPYTHON_VERSION=1.65
 
-all: biopython 3rdparty
+all: 3rdparty
 	$(MAKE) -C xtal
 
 .PHONY: prepare_offline
@@ -11,21 +13,32 @@ prepare_offline:
 3rdparty:
 	$(MAKE) -C 3rdparty all
 
-biopython_src:
-	wget -O biopython.tar.gz http://biopython.org/DIST/biopython-$(BIOPYTHON_VERSION).tar.gz && \
-	tar xzf biopython.tar.gz && $(RM) biopython.tar.gz && mv biopython-$(BIOPYTHON_VERSION) biopython_src
-
-biopython: biopython_src
-	cd biopython_src && pwd && \
-	python setup.py build && \
-	python setup.py install --prefix=../biopython
-
 clean:
-	$(RM) -R biopython
 	$(MAKE) -C xtal clean
 
 .PHONY: distclean
 distclean: clean
 	$(MAKE) -C xtal distclean
-	$(RM) -R biopython_src
 	$(MAKE) -C 3rdparty clean
+
+.PHONY: pyenv
+pyenv:
+	python3 -m virtualenv env
+
+.PHONY: pydeps
+pydeps: pyenv
+	bash -c "\
+		source env/bin/activate \
+	    && pip3 install numpy\
+			&& pip3 install biopython==1.77\
+	"
+
+.PHONY: run_example
+run_example: all pydeps
+	mkdir -p $(BASEDIR)/ppdata
+	bash -c " \
+	  set -ETeuo pipefail; \
+		export PATH=$(BASEDIR)/3rdparty/sqlite/bin/:$(PATH); \
+	  source env/bin/activate; \
+		$(BASEDIR)/start.sh -t 1 -v -o $(BASEDIR)/ppdata; \
+	"

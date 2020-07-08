@@ -134,17 +134,8 @@ fi
 
 g_statusmessage="setting variables"
 echo ${g_statusmessage} | pplog 0
-export PYTHONPATH=`find ${PROPAIRSROOT}/biopython/ -name "site-packages" -type d`
-
-if [ ! -d "${PYTHONPATH}" ]; then
-   error ${LINENO} "error: Biopython not found in PYTHONPATH=$PYTHONPATH - Did you run make?"
-fi
-
-export PATH=${PROPAIRSROOT}/3rdparty/sqlite/bin/:$PATH
 
 export PDBDATADIR=${OUTPUT}/pdb_dst/
-
-
 
 #-- define helper functions -----------
 
