@@ -38,18 +38,17 @@ declare g_loglevel=0
 declare g_logfile=/tmp/log
 
 error() {
-   line="$1"
-   message="$2"
+   message="$1"
    if [ "$message" != "" ]; then
-      printf "error: %s (line %s)\n" "$message" "$line" | pplog 0
+      printf "error: %s\n" "$message" | pplog 0
    elif [ "${g_statusmessage}" != "" ]; then
-      printf "error while %s (line %s)\n" "${g_statusmessage}" "$line" | pplog 0
+      printf "error while %s\n" "${g_statusmessage}" | pplog 0
    else
-      printf "error (line %s)\n" "$line" | pplog 0
+      printf "error\n" | pplog 0
    fi
    exit 1
 }
-trap 'error ${LINENO}' ERR
+
 declare g_statusmessage=""
 
 get_PDB_snapshot_list() {
@@ -65,7 +64,7 @@ get_PDB_snapshot_list() {
 
 declare PPROOT=
 declare OUTPUT=
-declare SNAPSHOT=
+declare SNAPSHOT=latest
 declare TESTSET=1
 while getopts "t:p:o:s:lv" o; do
     case "${o}" in
@@ -120,7 +119,7 @@ if [ ! -e "${PROPAIRSROOT}"/start.sh ]; then
    usage
 fi
 
-if [ "${SNAPSHOT}" != "" ]; then
+if [ "${SNAPSHOT}" != "latest" ]; then
    LIST="$( get_PDB_snapshot_list )"
    if ! echo "$LIST" | grep -o "${SNAPSHOT}" > /dev/null; then
       printf "error: unable to find snapshot \"${SNAPSHOT}\". Check internet connection and this list of available snapshots:\n\n"
@@ -141,72 +140,12 @@ export PDBDATADIR=${OUTPUT}/pdb_dst/
 
 g_statusmessage="defining helper functions"
 echo ${g_statusmessage} | pplog 0
-get_dir_hash() {
-   # get ms5sum of md5sum of all files
-   # TODO: WARNING might change when files have moved
-   find "$1" -type f -exec md5sum {} \; | md5sum
-}
 
 
 
 #-- get pdb files -----------
-PDBSNAP_HOST=snapshotrsync.rcsb.org
-PDBSNAP_PORT=8730
-PDBSNAP_HOST=pdbjsnap.protein.osaka-u.ac.jp
-PDBSNAP_PORT=873
 
-
-if [ "$SNAPSHOT" == "" ]; then
-   # use current PDB
-   g_statusmessage="getting PDB files"
-   echo ${g_statusmessage}"..." | pplog 0
-   if [ "${TESTSET}" != "0" ]; then
-      rsync -av --delete --progress --port=33444 \
-      --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
-   else
-      rsync -av --delete --progress --port=33444 \
-      rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
-   fi
-   get_dir_hash ./pdb > ./pdb.md5
-
-   if [ "${TESTSET}" != "0" ]; then
-      rsync -av --delete --progress --port=33444 \
-      --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-   else
-      rsync -av --delete --progress --port=33444 \
-      rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-   fi
-   get_dir_hash ./pdb_bio > ./pdb_bio.md5
-else # use PDB snapshot
-   g_statusmessage="getting PDB files for snapshot ${SNAPSHOT}"
-   echo ${g_statusmessage}"..." | pplog 0
-   # remove any symlinks
-   find -type l -exec rm {} \;
-   if [ "${TESTSET}" != "0" ]; then
-      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-      --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
-   else
-      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
-   fi
-   # fix PDB filenames for old snapshots
-   find pdb -name "*.Z" -exec bash -c 'ln -s -f $(pwd)/{} $(pwd)/$(echo {} | sed "s/.Z$/.gz/")' \;
-   get_dir_hash ./pdb > ./pdb.md5
-
-   if [ "${TESTSET}" != "0" ]; then
-      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-      --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-   else
-      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-      ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-   fi
-   get_dir_hash ./pdb_bio > ./pdb_bio.md5
-fi
-
+source ${PROPAIRSROOT}/bin/0a_download_pdbs.sh
 
 #-- prepare pdb files -----------
 
@@ -255,7 +194,7 @@ echo ${g_statusmessage}"..." | pplog 0
 declare SUFFIX=
 FULL=1
 DATE=$(date +%y%m%d)
-if [ "$SNAPSHOT" != "" ]; then
+if [ "$SNAPSHOT" != "latest" ]; then
    DATE=$SNAPSHOT
 fi
 if [ "${TESTSET}" != "0" ]; then
@@ -436,7 +375,7 @@ if [ "${FULL}" -eq 1 ]; then
 
 
    if [ ! -e ${PDBCODES}_done ]; then
-      error ${LINENO} "missing ${PDBCODES}"
+      error "missing ${PDBCODES}"
    fi
    if [ ! -e ${TABSIM}_done ]; then
       rm -f ${DBIMP}_done
@@ -456,7 +395,7 @@ if [ "${FULL}" -eq 1 ]; then
    fi
 
    if [ ! -e ${TABSIM}_done ]; then
-      error ${LINENO} "missing ${TABSIM}"
+      error "missing ${TABSIM}"
    fi
    if [ ! -e ${DBIMP}_done ]; then
       g_statusmessage="importing to database"
@@ -466,7 +405,7 @@ if [ "${FULL}" -eq 1 ]; then
       touch ${DBIMP}_done
    fi
    if [ ! -e ${DBIMP}_done ]; then
-      error ${LINENO} "missing ${DBIMP}"
+      error "missing ${DBIMP}"
    fi
 fi # end full search
 
@@ -481,7 +420,7 @@ fi
 
 
 if [ ! -e ${CAND}_done ]; then
-   error ${LINENO} "missing ${CAND}"
+   error "missing ${CAND}"
 fi
 if [ ! -e ${ALIGNED}_done ]; then
    g_statusmessage="calculating interface partitions / unbound alignments"
@@ -494,7 +433,7 @@ fi
 
 
 if [ ! -e ${ALIGNED}_done ]; then
-   error ${LINENO} "missing ${ALIGNED}"
+   error "missing ${ALIGNED}"
 fi
 if [ ! -e ${CLUSTERED}_done ]; then
    g_statusmessage="clustering interfaces"
@@ -506,7 +445,7 @@ fi
    
       
 if [ ! -e ${CLUSTERED}_done ]; then
-   error ${LINENO} "missing ${CLUSTERED}"
+   error "missing ${CLUSTERED}"
 fi
 if [ ! -e ${MERGED}_done ]; then
    g_statusmessage="generating non-redundant dataset"
@@ -518,7 +457,7 @@ fi
 
 
 if [ ! -e ${MERGED}_done ]; then
-   error ${LINENO} "missing ${MERGED}"
+   error "missing ${MERGED}"
 fi
 if [ ! -e ${WWWDATA}_done ]; then
    g_statusmessage="creating web data"
@@ -540,7 +479,7 @@ if [ ! -e ${WWWDATA}_done ]; then
    touch ${WWWDATA}_done
 fi
 if [ ! -e ${WWWDATA}_done ]; then
-   error ${LINENO} "missing ${WWWDATA}"
+   error "missing ${WWWDATA}"
 fi
 
 #------------------------------------------------------------------------------

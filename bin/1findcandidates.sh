@@ -178,7 +178,7 @@ FROM
 ORDER BY p;
 EOF
    )
-	echo "${QUERY}" | sqlite3 ${sqlite_db}
+	 echo "${QUERY}" | sqlite3 ${sqlite_db}
 }
 
 
