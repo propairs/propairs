@@ -1,7 +1,7 @@
 # postprocessing of PDB bio files to obtain bio units
 
 clean_bio() {
-  dst_dir=${pp_out_prefix}_pdbclean
+  dst_dir=${pp_out_prefix}_pdbbio
   # already done?
   [ -d ${dst_dir} ] && { printf "using cleaned bio files\n" | pplog 0 ; return 0; } || true
 

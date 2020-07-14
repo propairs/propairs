@@ -68,7 +68,7 @@ while [[ $# -gt 0 ]]; do
   unset arg
 done
 
-declare OUTPUT_DIR; OUTPUT_DIR=$1; readonly OUTPUT_DIR
+declare OUTPUT_DIR; OUTPUT_DIR=$(cd $1 && pwd); readonly OUTPUT_DIR
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-4}; export OMP_NUM_THREADS
 
 #-------------------------------------------------------------------------------
@@ -105,17 +105,17 @@ pp_out_prefix="${OUTPUT_DIR}/0a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/0a"
 source ${PPROOT}/src/0a_download_pdbs.sh
 
-
 pp_out_prefix="${OUTPUT_DIR}/0b"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/0b"
 pp_in_pdbbio="${OUTPUT_DIR}/0a_pdbbio"
 source ${PPROOT}/src/0b_clean_bio.sh
 unset pp_in_pdbbio
 
-
-
 pp_out_prefix="${OUTPUT_DIR}/0c"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/0c"
 pp_in_pdb="${OUTPUT_DIR}/0a_pdb"
-pp_in_pdbbio="${OUTPUT_DIR}/0a_pdbbio"
+pp_in_pdbbio="${OUTPUT_DIR}/0b_pdbbio"
 source ${PPROOT}/src/0c_merge_models.sh
+unset pp_in_pdb
+unset pp_in_pdbbio
+

@@ -20,4 +20,4 @@ pplog() {
   unset IFS
   return 0
 }
-export pplog
+export -f pplog
