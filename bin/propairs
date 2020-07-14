@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+set -ETeuo pipefail
+
+declare PPROOT; PPROOT="$( cd "$( dirname $0 )/.." && pwd )"; readonly PPROOT
+
+#-------------------------------------------------------------------------------
+
+usage()
+{
+cat << EOF
+usage: $0 [OPTION] PATH
+       $0 -l
+
+Generates the ProPairs dataset
+
+Options:
+  -h, --help            show this message
+  -f, --full            full search; default: perform test search on smaller data set
+  -l, --list-snapshots  get list of valid dates to be used as snapshot
+  -s, --snapshot DATE   use PDB snapshot as data set; default: "latest" (current PDB entries)
+  -v, --verbose         enable debug output
+EOF
+}
+
+#-------------------------------------------------------------------------------
+
+declare CFG_TESTSET=1
+declare CFG_SNAPSHOT=latest
+declare CFG_VERBOSE=0
+
+#-------------------------------------------------------------------------------
+
+while [[ $# -gt 0 ]]; do
+  arg="$1"
+
+  case ${arg} in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -f|--full)
+      CFG_TESTSET=0
+      shift
+      ;;
+    -l|--list-snapshots)
+      source ${PPROOT}/src/list_pdb_snapshots.sh
+      exit 0
+      ;;
+    -s|--snapshot)
+      CFG_SNAPSHOT=$2
+      shift
+      shift
+      ;;
+    -v|--verbose)
+      CFG_VERBOSE=1
+      shift
+      ;;
+    -*) # unknown option
+      printf "error: unknown option \"%s\"\n" "${arg}" 2>&1
+      usage
+      exit 1
+      ;;
+    *) # first positional argument
+      break;
+      ;;
+  esac
+  unset arg
+done
+
+declare OUTPUT_DIR
+OUTPUT_DIR=$1
+readonly OUTPUT_DIR
+
+#-------------------------------------------------------------------------------
+
+# create output dir if not existing
+
+create_out_dir() {
+  # directory exists?
+  [ -d ${OUTPUT_DIR} ] && return 0
+  # exists fir is file?
+  [ -e ${OUTPUT_DIR} ] && [ -f ${OUTPUT_DIR} ] \
+    && { printf "error: \"${OUTPUT_DIR}\" is a file\n" "${OUTPUT_DIR}" >&2; exit 1; }
+  mkdir -p ${OUTPUT_DIR}
+}
+create_out_dir
+unset create_out_dir
+
+source ${PPROOT}/src/helpers.sh
+
+# if outdir already has a config file, read it
+config_file=${OUTPUT_DIR}/config.txt
+config_curr=$(cat << EOI
+CFG_TESTSET=${CFG_TESTSET}
+CFG_SNAPSHOT=${CFG_SNAPSHOT}
+CFG_VERBOSE=${CFG_VERBOSE}
+EOI
+)
+[ -f ${config_file} ] && source ${config_file} || echo "${config_curr}" > ${config_file}
+cat ${config_file} | pplog 1
+unset config_file
+
+
+pp_out_prefix="${OUTPUT_DIR}/0a"
+pp_tmp_prefix="${OUTPUT_DIR}/tmp/0a"
+source ${PPROOT}/src/0a_download_pdbs.sh

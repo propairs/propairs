@@ -1,10 +1,4 @@
-PDBSNAP_HOST=snapshotrsync.rcsb.org
-PDBSNAP_PORT=8730
-PDBSNAP_HOST=pdbjsnap.protein.osaka-u.ac.jp
-PDBSNAP_PORT=873
-
-fn_testset=${PROPAIRSROOT}"/testdata/pdbbio_DB4set.txt"
-out_prefix="./0a_dlpdb_"
+# download PDB files and PDB bio files
 
 _get_dir_hash() {
    # get ms5sum of md5sum of all files
@@ -12,79 +6,84 @@ _get_dir_hash() {
    find "$1" -type f -exec md5sum {} \; | md5sum
 }
 
+_download_pdb() {
+  fn_testset=${PPROOT}/testdata/pdb_DB4set.txt
+  dst_dir=${pp_out_prefix}_pdb
 
-# status file: "<snapshot> <testset>"
-#  example: "20170101 1"
-#  If status file does not match. Delete and run rsync.
+  # already done?
+  [ -d ${dst_dir} ] && { printf "using pre-downloaded PDB directory\n" | pplog 0 ; return 0; } || true
 
-
-_write_status() {
-  echo "${SNAPSHOT} ${TESTSET}" > ${out_prefix}_status
+  find -type l -exec rm {} \;
+  echo "PDB syncing..." | pplog 0
+  if [ "$CFG_SNAPSHOT" == "latest" ]; then
+    # use current PDB
+    if [ "${CFG_TESTSET}" != "0" ]; then
+      rsync -av --delete --progress --port=33444 \
+        --include-from=${fn_testset} --include="*/" --exclude="*" \
+        rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
+    else
+      rsync -av --delete --progress --port=33444 \
+        rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
+    fi
+  else
+    if [ "${CFG_TESTSET}" != "0" ]; then
+      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+        --include-from=${fn_testset} --include="*/" --exclude="*" \
+        ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
+    else
+      rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+        ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
+    fi
+  fi
+  printf "PDB sync complete (num.pdbs=%s hash=%s)\n" "$(find ./pdb -type f -name "*.gz" | wc -l)" "$(_get_dir_hash ./pdb | head -c 7)" | pplog 0
+  mv ./pdb ${dst_dir}
+  [ -d ${dst_dir} ] || { printf "error: pdb directory not created\n"; exit 1; }
 }
 
-_cmp_status() {
-  [ -f ${out_prefix}_status ] || return 1
-  status=( $( cat ${out_prefix}_status ) )
-  [ "${status[0]}" == "${SNAPSHOT}" ] || return 1
-  [ "${status[1]}" == "${TESTSET}" ]  || return 1
-  return 0
+_download_pdbbio() {  
+  fn_testsetbio=${PPROOT}/testdata/pdbbio_DB4set.txt
+  dst_dir=${pp_out_prefix}_pdbbio
+
+  # already done?
+  [ -d ${dst_dir} ] && { printf "using pre-downloaded PDB-bio directory\n" | pplog 0 ; return 0; } || true
+
+  find -type l -exec rm {} \;
+  echo "PDB bio syncing..." | pplog 0
+  if [ "$CFG_SNAPSHOT" == "latest" ]; then
+    if [ "${CFG_TESTSET}" != "0" ]; then
+        rsync -av --delete --progress --port=33444 \
+        --include-from=${fn_testsetbio} --include="*/" --exclude="*" \
+        rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+    else
+        rsync -av --delete --progress --port=33444 \
+        rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+    fi
+  else 
+    if [ "${CFG_TESTSET}" != "0" ]; then
+        rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+        --include-from=${fn_testsetbio} --include="*/" --exclude="*" \
+        ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+    else
+        rsync -av --delete --progress --port=${PDBSNAP_PORT} \
+        ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
+    fi
+  fi
+  printf "PDB bio sync complete (num.pdbs=%s hash=%s)\n" "$(find ./pdb_bio -type f -name "*.gz" | wc -l)" "$(_get_dir_hash ./pdb_bio | head -c 7)" | pplog 0
+  mv ./pdb_bio ${dst_dir}
+  [ -d ${dst_dir} ] || { printf "error: pdb bio directory not created\n"; exit 1; }
 }
 
 download_pdbs() {
-  _cmp_status && return 0 || true
-  rm -rf ${out_prefix}_status
-  if [ "$SNAPSHOT" == "latest" ]; then
-    # use current PDB
-    g_statusmessage="getting PDB files"
-    echo ${g_statusmessage}"..." | pplog 0
-    if [ "${TESTSET}" != "0" ]; then
-        rsync -av --delete --progress --port=33444 \
-        --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-        rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
-    else
-        rsync -av --delete --progress --port=33444 \
-        rsync.wwpdb.org::ftp_data/structures/divided/pdb/ ./pdb | pplog 1
-    fi
-    _get_dir_hash ./pdb > ./pdb.md5
-
-    if [ "${TESTSET}" != "0" ]; then
-        rsync -av --delete --progress --port=33444 \
-        --include-from="$PROPAIRSROOT/testdata/pdbbio_DB4set.txt" --include="*/" --exclude="*" \
-        rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-    else
-        rsync -av --delete --progress --port=33444 \
-        rsync.wwpdb.org::ftp/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-    fi
-    _get_dir_hash ./pdb_bio > ./pdb_bio.md5
-  else # use PDB snapshot
-    g_statusmessage="getting PDB files for snapshot ${SNAPSHOT}"
-    echo ${g_statusmessage}"..." | pplog 0
-    # remove any symlinks
-    find -type l -exec rm {} \;
-    if [ "${TESTSET}" != "0" ]; then
-        rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-        --include-from="$PROPAIRSROOT/testdata/pdb_DB4set.txt" --include="*/" --exclude="*" \
-        ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
-    else
-        rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-        ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
-    fi
-    # fix PDB filenames for old snapshots
-    find pdb -name "*.Z" -exec bash -c 'ln -s -f $(pwd)/{} $(pwd)/$(echo {} | sed "s/.Z$/.gz/")' \;
-    _get_dir_hash ./pdb > ./pdb.md5
-
-    if [ "${TESTSET}" != "0" ]; then
-        rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-        --include-from=${fn_testset} --include="*/" --exclude="*" \
-        ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-    else
-        rsync -av --delete --progress --port=${PDBSNAP_PORT} \
-        ${PDBSNAP_HOST}::${SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
-    fi
-    _get_dir_hash ./pdb_bio > ./pdb_bio.md5
-  fi
-  _write_status
+  PDBSNAP_HOST=snapshotrsync.rcsb.org
+  PDBSNAP_PORT=8730
+  # PDBSNAP_HOST=pdbjsnap.protein.osaka-u.ac.jp
+  # PDBSNAP_PORT=873
+  mkdir -p ${pp_tmp_prefix}
+  cd ${pp_tmp_prefix}
+  _download_pdb
+  _download_pdbbio
 }
+
 
 
 download_pdbs
