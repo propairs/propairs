@@ -119,3 +119,8 @@ source ${PPROOT}/src/1_merge_models.sh
 unset pp_in_pdb
 unset pp_in_pdbbio
 
+pp_out_prefix="${OUTPUT_DIR}/2a"
+pp_tmp_prefix="${OUTPUT_DIR}/tmp/2a"
+pp_in_pdb="${OUTPUT_DIR}/1b_pdb"
+source ${PPROOT}/src/2_pdbcodes.sh
+unset pp_in_pdb
