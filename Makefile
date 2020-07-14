@@ -40,5 +40,5 @@ run_example: all pydeps
 	  set -ETeuo pipefail; \
 		export PATH=$(BASEDIR)/3rdparty/sqlite/bin/:$(PATH); \
 	  source env/bin/activate; \
-		$(BASEDIR)/start.sh -t 1 -v -o $(BASEDIR)/ppdata; \
+		$(BASEDIR)/bin/propairs $(BASEDIR)/ppdata; \
 	"
