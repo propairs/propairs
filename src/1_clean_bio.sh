@@ -7,7 +7,7 @@ clean_bio() {
 
   mkdir -p ${pp_tmp_prefix}/pdb_bio_merged
   MEMKB=$(cat /proc/meminfo | grep ^MemTotal | awk '{print $2}' )
-  echo "clean bio with ${OMP_NUM_THREADS} CPUs and ${MEMKB} kB memory"
+  echo "cleaning bio with ${OMP_NUM_THREADS} CPUs and ${MEMKB} kB memory"
   python ${PPROOT}/pdb-merge-bio/merge_bio_folder.py \
     --numthreads ${OMP_NUM_THREADS} \
     --maxmem ${MEMKB} \

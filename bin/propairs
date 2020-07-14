@@ -103,19 +103,19 @@ unset config_file
 
 pp_out_prefix="${OUTPUT_DIR}/0a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/0a"
-source ${PPROOT}/src/0a_download_pdbs.sh
+source ${PPROOT}/src/0_download_pdbs.sh
 
-pp_out_prefix="${OUTPUT_DIR}/0b"
-pp_tmp_prefix="${OUTPUT_DIR}/tmp/0b"
+pp_out_prefix="${OUTPUT_DIR}/1a"
+pp_tmp_prefix="${OUTPUT_DIR}/tmp/1a"
 pp_in_pdbbio="${OUTPUT_DIR}/0a_pdbbio"
-source ${PPROOT}/src/0b_clean_bio.sh
+source ${PPROOT}/src/1_clean_bio.sh
 unset pp_in_pdbbio
 
-pp_out_prefix="${OUTPUT_DIR}/0c"
-pp_tmp_prefix="${OUTPUT_DIR}/tmp/0c"
+pp_out_prefix="${OUTPUT_DIR}/1b"
+pp_tmp_prefix="${OUTPUT_DIR}/tmp/1b"
 pp_in_pdb="${OUTPUT_DIR}/0a_pdb"
-pp_in_pdbbio="${OUTPUT_DIR}/0b_pdbbio"
-source ${PPROOT}/src/0c_merge_models.sh
+pp_in_pdbbio="${OUTPUT_DIR}/1a_pdbbio"
+source ${PPROOT}/src/1_merge_models.sh
 unset pp_in_pdb
 unset pp_in_pdbbio
 
