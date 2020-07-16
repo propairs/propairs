@@ -3,7 +3,7 @@
 clean_bio() {
   dst_dir=${pp_out_prefix}_pdbbio
   # already done?
-  [ -d ${dst_dir} ] && { printf "using cleaned bio files\n" | pplog 0 ; return 0; } || true
+  [ -d ${dst_dir} ] && { printf "using existing, cleaned PDB bio directory\n" | pplog 0 ; return 0; } || true
 
   mkdir -p ${pp_tmp_prefix}/pdb_bio_merged
   MEMKB=$(cat /proc/meminfo | grep ^MemTotal | awk '{print $2}' )

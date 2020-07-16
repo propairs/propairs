@@ -136,5 +136,7 @@ pp_in_pdb="${OUTPUT_DIR}/1b_pdb"
 pp_in_pdbcodes="${OUTPUT_DIR}/2a_pdbcodes"
 source ${PPROOT}/src/2_calc_chaininf.sh
 source ${PPROOT}/src/2_import_chaininf.sh
-#source ${PPROOT}/src/2_find_seeds.sh
+source ${PPROOT}/src/2_find_seeds.sh
 unset pp_in_pdb
+
+printf "done\n" | pplog 0

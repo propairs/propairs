@@ -106,7 +106,7 @@ merge_models() (
 
   dst_dir=${pp_out_prefix}_pdb
   # already done?
-  [ -d ${dst_dir} ] && { printf "using cleaned and merged PDB files\n" | pplog 0 ; return 0; } || true
+  [ -d ${dst_dir} ] && { printf "using existing, analysis-ready PDB directory\n" | pplog 0 ; return 0; } || true
   # check input
   [  ! -d "$pp_in_pdb" ] && { printf "error: pp_in_pdb\n"; return 1; }
   [  ! -d "$pp_in_pdbbio" ] && { printf "error: pp_in_pdbbio\n"; return 1; }
