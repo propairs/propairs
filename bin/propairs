@@ -134,5 +134,7 @@ pp_out_prefix="${OUTPUT_DIR}/2b"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/2b"
 pp_in_pdb="${OUTPUT_DIR}/1b_pdb"
 pp_in_pdbcodes="${OUTPUT_DIR}/2a_pdbcodes"
-source ${PPROOT}/src/2_chainsim.sh
+source ${PPROOT}/src/2_chaininf.sh
+source ${PPROOT}/src/2_importchaininf.sh
+#source ${PPROOT}/src/2_findcandidates.sh
 unset pp_in_pdb

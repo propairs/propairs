@@ -1,4 +1,6 @@
 merge_models() (
+  set -ETeuo pipefail
+  
   _merge_models_par() (
     set -ETeuo pipefail
 
