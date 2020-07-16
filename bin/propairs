@@ -68,6 +68,12 @@ while [[ $# -gt 0 ]]; do
   unset arg
 done
 
+if [[ $# -eq 0 ]]; then
+  printf "error: missing PATH\n" 2>&1
+  usage
+  exit 1
+fi
+
 declare OUTPUT_DIR; OUTPUT_DIR=$(cd $1 && pwd); readonly OUTPUT_DIR
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-4}; export OMP_NUM_THREADS
 
