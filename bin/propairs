@@ -100,10 +100,13 @@ EOI
 cat ${config_file} | pplog 1
 unset config_file
 
+# download
 
 pp_out_prefix="${OUTPUT_DIR}/0a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/0a"
 source ${PPROOT}/src/0_download_pdbs.sh
+
+# cleanup
 
 pp_out_prefix="${OUTPUT_DIR}/1a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/1a"
@@ -119,8 +122,17 @@ source ${PPROOT}/src/1_merge_models.sh
 unset pp_in_pdb
 unset pp_in_pdbbio
 
+# calc candidates
+
 pp_out_prefix="${OUTPUT_DIR}/2a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/2a"
 pp_in_pdb="${OUTPUT_DIR}/1b_pdb"
 source ${PPROOT}/src/2_pdbcodes.sh
+unset pp_in_pdb
+
+pp_out_prefix="${OUTPUT_DIR}/2b"
+pp_tmp_prefix="${OUTPUT_DIR}/tmp/2b"
+pp_in_pdb="${OUTPUT_DIR}/1b_pdb"
+pp_in_pdbcodes="${OUTPUT_DIR}/2a_pdbcodes"
+source ${PPROOT}/src/2_chainsim.sh
 unset pp_in_pdb
