@@ -123,6 +123,8 @@ merge_models() (
       > ${pp_tmp_prefix}/pdbcodes
   fi
   # make chunks
+  # todo: split into at least 4 on smaller data sets
+  # chunk_size=$(( num_pdbcodes/4 < 400 ? num_pdbcodes/4 : 400 ))
   split -l 400 -d ${pp_tmp_prefix}/pdbcodes ${pp_tmp_prefix}/pdbcodes_split
   chunks=$(find ${pp_tmp_prefix} -regex ".*pdbcodes_split[^_]*" )
   printf "merging pdb files with %s CPUs and %s chunks\n" $OMP_NUM_THREADS "$( echo "$chunks" | wc -l )" | pplog 0

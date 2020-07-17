@@ -1,4 +1,5 @@
 pplog() {
+  set -ETeuo pipefail
   local lvl
   lvl=$1
   readonly lvl
@@ -21,3 +22,20 @@ pplog() {
   return 0
 }
 export -f pplog
+
+# read from stdin
+function format_table() {
+  set -ETeuo pipefail
+  local -r num_cols=$1
+  source ${PPROOT}/config/columns_def.sh
+  header=( $(echo $TABLEHEADER) )
+  {
+    for i in ${!header[@]}; do
+      [ $i -le $num_cols ] || break
+      printf "%s " ${header[i]}
+    done
+    printf "\n"
+    cat | sort -n
+  } | column -t
+}
+export -f format_table

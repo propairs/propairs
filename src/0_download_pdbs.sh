@@ -87,3 +87,8 @@ download_pdbs() {
 
 
 download_pdbs
+
+unset download_pdbs
+unset _get_dir_hash
+unset _download_pdb
+unset _download_pdbbio

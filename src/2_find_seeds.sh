@@ -1,20 +1,11 @@
 function find_seeds() (
+
 set -ETeuo pipefail
 
-
-declare -r sqlite_db=${pp_tmp_prefix}/chaininf.db
-declare -r TNAMECON=chaincon
-declare -r TNAMEGRP=chaingrp
-declare -r TNAMESIM=chainsim
-
-_DEBUG=0
-
-function log () {
-   if [[ $_DEBUG -eq 1 ]]; then
-      echo "$@"
-   fi
-}
-
+export sqlite_db=${pp_tmp_prefix}/chaininf.db
+export TNAMECON=chaincon
+export TNAMEGRP=chaingrp
+export TNAMESIM=chainsim
 
 function get_bound {
    PDBCODE=$1
@@ -182,38 +173,53 @@ EOF
 	 echo "${QUERY}" | sqlite3 ${sqlite_db}
 }
 
+function find_cand() {
+	PDBCODE=$1
+	PDBCODE=`echo ${PDBCODE} | tr [:upper:] [:lower:]`
+	# log "`printf "++++++++++ %s ++++++++++\n" ${PDBCODE}`"
+	RES=`get_bound ${PDBCODE}`
+	# log ">> get_bound $RES"
+	
+	
+	# split lines
+	IFS=$';'
+	for ROW in $RES
+	do
+		# split fields
+		IFS=',' read -ra FIELDS <<< "$ROW"
+		PDB="${FIELDS[0]}"
+		CHAININ="${FIELDS[1]}"
+		CHAINEX="${FIELDS[2]}"
+		# bound
+		# log "`printf "%s %c %c -- \n" "${PDB}" "${CHAININ}" "${CHAINEX}"`"
+		# unbound
+		URES=`get_unbound "${PDB}" "${CHAININ}" "${CHAINEX}"`
+		# log ">> get_unbound $URES"
+		
+			IFS=$';'
+			for UROW in $URES
+			do
+			printf "%s,%c:%c %s\n" "${PDB}" "${CHAININ}" "${CHAINEX}" "$UROW"
+			done
+			unset IFS
+	done
+	unset IFS
+}
 
-function find_cand {
-   PDBCODE=$1
-   PDBCODE=`echo ${PDBCODE} | tr [:upper:] [:lower:]`
-   log "`printf "++++++++++ %s ++++++++++\n" ${PDBCODE}`"
-   RES=`get_bound ${PDBCODE}`
-   log ">> get_bound $RES"
-   
-   
-   # split lines
-   IFS=$';'
-   for ROW in $RES
-   do
-      # split fields
-      IFS=',' read -ra FIELDS <<< "$ROW"
-      PDB="${FIELDS[0]}"
-      CHAININ="${FIELDS[1]}"
-      CHAINEX="${FIELDS[2]}"
-      # bound
-      #log "`printf "%s %c %c -- \n" "${PDB}" "${CHAININ}" "${CHAINEX}"`"
-      # unbound
-      URES=`get_unbound "${PDB}" "${CHAININ}" "${CHAINEX}"`
-      log ">> get_unbound $URES"
-      
-       IFS=$';'
-       for UROW in $URES
-       do
-        printf "%s,%c:%c %s\n" "${PDB}" "${CHAININ}" "${CHAINEX}" "$UROW"
-       done
-       unset IFS
-   done
-   unset IFS
+
+function find_seeds_split() {
+	set -ETeuo pipefail
+	local -r chunk_file_in=$1
+	local -r chunk_file_out=${chunk_file_in/pdbcodes/seeds}
+	# done ?
+	[ -f ${chunk_file_out} ] && return 0 || true
+	{
+		while read pdb_code; do 
+			find_cand ${pdb_code}
+		done < ${chunk_file_in}
+ 	} | tr ':' ' '  | tr ',' ' ' > ${chunk_file_out}_tmp
+	mv ${chunk_file_out}_tmp ${chunk_file_out}
+	printf "completed seed ${chunk_file_out}\n"
 }
 
 dst_fn=${pp_out_prefix}_seeds
@@ -221,19 +227,31 @@ dst_fn=${pp_out_prefix}_seeds
 
 printf "calculating seeds...\n" | pplog 0
 
-TMPPDBLIST=`mktemp`
-get_pdbids | tr ";" "\n" > $TMPPDBLIST
-INPUT=$TMPPDBLIST   
 
-{
-  # sequential version //TODO: split and gnu-parallel
-  while read PDBCODE; do 
-    find_cand ${PDBCODE}
-  done < ${INPUT} > ${pp_tmp_prefix}/seeds
-} 2>&1 | pplog 0
+get_pdbids | tr ";" "\n" > ${pp_tmp_prefix}/exp_pdbcodes
+num_pdbs=$( cat ${pp_tmp_prefix}/exp_pdbcodes | wc -l )
 
-rm -f $TMPPDBLIST
-mv ${pp_tmp_prefix}/seeds ${dst_fn}
+# split into at least 4 on smaller data sets
+chunk_size=$(( num_pdbs/4 < 400 ? num_pdbs/4+1 : 400 ))
+
+split -l ${chunk_size} -d ${pp_tmp_prefix}/exp_pdbcodes ${pp_tmp_prefix}/exp_split_pdbcodes
+chunks=$(find ${pp_tmp_prefix} -regex ".*exp_split_pdbcodes[^_]*" )
+printf "calculating seeds with %s CPUs and %s chunks\n" $OMP_NUM_THREADS "$( echo "$chunks" | wc -l )" | pplog 0
+
+export -f find_cand
+export -f get_bound
+export -f get_unbound
+export -f find_seeds_split
+parallel \
+	-j ${OMP_NUM_THREADS} \
+	find_seeds_split {} ::: $chunks | pplog 1
+
+# merge and format table
+printf "merging seeds...\n" | pplog 0
+find ${pp_tmp_prefix} -regex ".*exp_split_seeds[^_]*" \
+	| xargs cat | sort | cat -n | format_table 5 > ${pp_tmp_prefix}/exp_seeds
+mv ${pp_tmp_prefix}/exp_seeds ${dst_fn}
+
 )
 
 
