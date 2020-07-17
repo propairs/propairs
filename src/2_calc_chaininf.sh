@@ -10,7 +10,7 @@ _call_xtal() {
       ${op} \
       ${pp_in_pdb} \
       ${pp_in_pdbcodes} \
-      ${pp_tmp_prefix}/chunk_status_${op}.txt \
+      ${pp_tmp_prefix}/chunk_status_${op} \
       >> ${dst_fn}_tmp
   } 2>&1 | pplog 1
   mv ${dst_fn}_tmp ${dst_fn}
