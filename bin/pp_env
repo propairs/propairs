@@ -7,6 +7,6 @@ declare BASEDIR; BASEDIR="$( cd "$( dirname $0 )/.." && pwd )"; readonly BASEDIR
 export PATH=${BASEDIR}/3rdparty/sqlite/bin/:${PATH}
 export PATH=${BASEDIR}/3rdparty/gnuparallel/bin/:${PATH}
 
-source env/bin/activate
+source ${BASEDIR}/env/bin/activate
 
 ${BASEDIR}/bin/propairs $*
