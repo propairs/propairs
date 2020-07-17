@@ -144,5 +144,16 @@ source ${PPROOT}/src/2_calc_chaininf.sh
 source ${PPROOT}/src/2_import_chaininf.sh
 source ${PPROOT}/src/2_find_seeds.sh
 unset pp_in_pdb
+unset pp_in_pdbcodes
+
+# identify complexes (+align unbound structures)
+
+pp_out_prefix="${OUTPUT_DIR}/3a"
+pp_tmp_prefix="${OUTPUT_DIR}/tmp/3a"
+pp_in_pdb="${OUTPUT_DIR}/1b_pdb"
+pp_in_seeds="${OUTPUT_DIR}/2b_seeds"
+source ${PPROOT}/src/3_find_complexes.sh
+unset pp_in_pdb
+unset pp_in_seeds
 
 printf "done\n" | pplog 0
