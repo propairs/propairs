@@ -133,7 +133,7 @@ merge_models() (
   export pp_tmp_prefix
   export PFIX
   export SFIX
-  ${PPROOT}/3rdparty/gnuparallel/bin/parallel \
+  parallel \
     -j ${OMP_NUM_THREADS} \
     _merge_models_par {} ::: $chunks | pplog 1
   

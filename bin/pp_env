@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -ETeuo pipefail
+
+declare BASEDIR; BASEDIR="$( cd "$( dirname $0 )/.." && pwd )"; readonly BASEDIR
+
+export PATH=${BASEDIR}/3rdparty/sqlite/bin/:${PATH}
+export PATH=${BASEDIR}/3rdparty/gnuparallel/bin/:${PATH}
+
+source env/bin/activate
+
+${BASEDIR}/bin/propairs $*
