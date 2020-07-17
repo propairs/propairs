@@ -13,17 +13,17 @@ find_complexes() (
   cp ${PPROOT}/config/cof_ignorelist.txt ${XTAL_COF_IGNORELIST}
   cp ${PPROOT}/config/cof_groups.txt ${XTAL_COF_GROUPS}
 
-  cp ${PPROOT}/config/cof_ignorelist.txt /tmp
-  cp ${PPROOT}/config/cof_groups.txt /tmp
-
   # align
   {
     ${PPROOT}/xtal/src/xtalcompunbound/xtalcompunbound ${pp_in_pdb}/ ${pp_in_seeds} ${pp_tmp_prefix}/chunk_status >> ${pp_tmp_prefix}/complexes_tmp
-  } | pplog 1
+  } 2>&1 | pplog 1
 
   # format output
   cat ${pp_tmp_prefix}/complexes_tmp | sort | uniq | format_table 41 > ${pp_tmp_prefix}/complexes
 
+  num_total=$( tail -n +2 ${pp_tmp_prefix}/complexes | wc -l )
+  num_valid=$( tail -n +2 ${pp_tmp_prefix}/complexes | grep -v error | wc -l ) 
+  printf "found %s valid interface-unbound pairs from %s seeds\n" "$num_valid" "$num_total" | pplog 0
   mv ${pp_tmp_prefix}/complexes ${dst_file}
 )
 
