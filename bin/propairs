@@ -88,9 +88,11 @@ create_out_dir() {
   [ -e ${OUTPUT_DIR} ] && [ -f ${OUTPUT_DIR} ] \
     && { printf "error: \"${OUTPUT_DIR}\" is a file\n" "${OUTPUT_DIR}" >&2; exit 1; }
   mkdir -p ${OUTPUT_DIR}
+  mkdir -p ${OUTPUT_DIR}/tmp
 }
 create_out_dir
 unset create_out_dir
+TMPDIR=${OUTPUT_DIR}/tmp; export TMPDIR
 
 source ${PPROOT}/src/helpers.sh
 
