@@ -36,9 +36,4 @@ pydeps: pyenv
 .PHONY: run_example
 run_example: all pydeps
 	mkdir -p $(BASEDIR)/ppdata
-	bash -c " \
-	  set -ETeuo pipefail; \
-		export PATH=$(BASEDIR)/3rdparty/sqlite/bin/:$(PATH); \
-	  source env/bin/activate; \
-		$(BASEDIR)/bin/propairs $(BASEDIR)/ppdata; \
-	"
+	$(BASEDIR)/bin/pp_env $(BASEDIR)/ppdata
