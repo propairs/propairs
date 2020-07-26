@@ -29,8 +29,8 @@ _download_pdb() {
         ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
     fi
     printf "PDB sync fixing filenames...\n" | pplog 0
-    find ./pdb -name "*.Z" | while read pdbz; do 
-      ln -s ${pdbz##*/} ${pdbz/ent.Z/ent.gz}
+    find ./pdb -name "*.ent.Z" | while read pdbz; do 
+      ln -s -f ${pdbz##*/} ${pdbz/ent.Z/ent.gz}
     done
   fi
   printf "PDB sync complete (num.pdbs=%s)\n" "$(find -L ./pdb -type f -name "*.gz" | wc -l)" | pplog 0
