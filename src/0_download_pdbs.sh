@@ -28,8 +28,12 @@ _download_pdb() {
       rsync -av --delete --progress --port=${PDBSNAP_PORT} \
         ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/structures/divided/pdb/ ./pdb | pplog 1
     fi
+    printf "PDB sync fixing filenames...\n" | pplog 0
+    find ./pdb -name "*.Z" | while read pdbz; do 
+      ln -s ${pdbz##*/} ${pdbz/ent.Z/ent.gz}
+    done
   fi
-  printf "PDB sync complete (num.pdbs=%s)\n" "$(find ./pdb -type f -name "*.gz" | wc -l)" | pplog 0
+  printf "PDB sync complete (num.pdbs=%s)\n" "$(find -L ./pdb -type f -name "*.gz" | wc -l)" | pplog 0
   mv ./pdb ${dst_dir}
   [ -d ${dst_dir} ] || { printf "error: pdb directory not created\n"; exit 1; }
 }
@@ -62,7 +66,7 @@ _download_pdbbio() {
         ${PDBSNAP_HOST}::${CFG_SNAPSHOT}/pub/pdb/data/biounit/coordinates/divided/ ./pdb_bio/ | pplog 1
     fi
   fi
-  printf "PDB bio sync complete (num.pdbs=%s hash=%s)\n" "$(find ./pdb_bio -type f -name "*.gz" | wc -l)" | pplog 0
+  printf "PDB bio sync complete (num.pdbs=%s)\n" "$(find ./pdb_bio -type f -name "*.gz" | wc -l)" | pplog 0
   mv ./pdb_bio ${dst_dir}
   [ -d ${dst_dir} ] || { printf "error: pdb bio directory not created\n"; exit 1; }
 }
