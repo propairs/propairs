@@ -76,6 +76,7 @@ fi
 
 declare OUTPUT_DIR; OUTPUT_DIR=$(cd $1 && pwd); readonly OUTPUT_DIR
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-4}; export OMP_NUM_THREADS
+CFG_MAXMEM_KB=${CFG_MAXMEM_KB:-$(( OMP_NUM_THREADS * 1024 * 1024 ))}; export CFG_MAXMEM_KB
 
 #-------------------------------------------------------------------------------
 
