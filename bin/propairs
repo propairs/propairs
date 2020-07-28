@@ -115,7 +115,7 @@ pp_out_prefix="${OUTPUT_DIR}/0a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/0a"
 source ${PPROOT}/src/0_download_pdbs.sh
 
-# cleanup
+# cleanup of PDBs
 
 pp_out_prefix="${OUTPUT_DIR}/1a"
 pp_tmp_prefix="${OUTPUT_DIR}/tmp/1a"
