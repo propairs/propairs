@@ -12,10 +12,11 @@ function get_bound {
 
    QUERY=$(
    cat << EOF
+PRAGMA cache_size = -$((CFG_MAXMEM_KB / OMP_NUM_THREADS));
 .separator "," ";"
 select c.pdb,c.c1,c.c2 from ${TNAMECON} c where 1
-and c.intsize > 10
 and c.p='${PDBCODE}'
+and c.intsize > 10
 -- only first biounit
 and substr(c.pdb, 5, 1) = '1'
 -- B1 and B2 not in same grp (do not allow similar sequence) 
@@ -87,6 +88,7 @@ function get_unbound {
 
    QUERY=$(
    cat << EOF
+PRAGMA cache_size = -$((CFG_MAXMEM_KB / OMP_NUM_THREADS));
 .separator "," ";"
 SELECT c.pdb,c.c FROM ${TNAMEGRP} c WHERE 1
 AND ( 0
@@ -232,10 +234,10 @@ get_pdbids | tr ";" "\n" > ${pp_tmp_prefix}/exp_pdbcodes
 num_pdbs=$( cat ${pp_tmp_prefix}/exp_pdbcodes | wc -l )
 
 # split into at least 4 on smaller data sets
-chunk_size=$(( num_pdbs/4 < 400 ? num_pdbs/4+1 : 400 ))
+chunk_size=$(( num_pdbs/4 < 100 ? num_pdbs/4+1 : 100 ))
 
 split -l ${chunk_size} -d ${pp_tmp_prefix}/exp_pdbcodes ${pp_tmp_prefix}/exp_split_pdbcodes
-chunks=$(find ${pp_tmp_prefix} -regex ".*exp_split_pdbcodes[^_]*" )
+chunks=$(find ${pp_tmp_prefix} -regex ".*exp_split_pdbcodes[^_]*" | sort )
 printf "calculating seeds with %s CPUs and %s chunks\n" $OMP_NUM_THREADS "$( echo "$chunks" | wc -l )" | pplog 0
 
 export -f find_cand
