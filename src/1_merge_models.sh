@@ -57,7 +57,6 @@ merge_models() (
     # use bio PDB XXXX[0-9] if available + original PDBs header
     # use PDB otherwise
     local fn_input_pdbs=$1
-    echo $fn_input_pdbs
     # chunk already done?
     [ ! -e ${fn_input_pdbs}_done ] || return 0
     while read pdbcode; do
@@ -126,7 +125,7 @@ merge_models() (
   # todo: split into at least 4 on smaller data sets
   # chunk_size=$(( num_pdbcodes/4 < 400 ? num_pdbcodes/4 : 400 ))
   split -l 400 -d ${pp_tmp_prefix}/pdbcodes ${pp_tmp_prefix}/pdbcodes_split
-  chunks=$(find ${pp_tmp_prefix} -regex ".*pdbcodes_split[^_]*" )
+  chunks=$(find ${pp_tmp_prefix} -regex ".*pdbcodes_split[^_]*" | sort )
   printf "merging pdb files with %s CPUs and %s chunks\n" $OMP_NUM_THREADS "$( echo "$chunks" | wc -l )" | pplog 0
 
   export -f _merge_models_par
