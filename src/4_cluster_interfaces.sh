@@ -65,6 +65,19 @@ EOF
 )
   echo "${query}" | sqlite3 ${sqlite_db} | pplog 0
 
+  _run_query() {
+    local -r query="$1"
+    echo "${query}"            >&${sqlio[1]}
+    echo ".print end_of_query" >&${sqlio[1]}
+    while read -ru ${sqlio[0]} row; do
+      if [ "${row}" == "end_of_query" ]; then 
+        break 
+      fi
+      echo "${row}"
+    done
+  }
+
+
   get_clus_info() {
     local pdb=$1
     local c1=$2
@@ -77,21 +90,26 @@ where pdb = '${pdb}'
 and (
   ( c1 = '${c1}' and c2 = '${c2}' )
   or ( c2 = '${c1}' and c1 = '${c2}' )
-)
+);
 EOF
 ) 
-    echo "${query}" | sqlite3 ${sqlite_db}
+    _run_query "${query}"
   }
 
   printf "assigning cluster ids...\n" | pplog 0
   source ${PPROOT}/config/columns_def.sh
-  tail -n +2 ${pp_in_complexes} | grep -v error | while read line; do
-    tokens=(echo $line)
-    echo $line $(get_clus_info ${tokens[${SEEDPB}]} ${tokens[${CBI1}]} ${tokens[${CBI2}]})
-  done | format_table 44 > ${pp_tmp_prefix}/clustered
+  {
+    coproc sqlio { sqlite3 -bail -csv ${sqlite_db}; }
+    while read line; do
+      tokens=(echo $line)
+      echo $line $(get_clus_info ${tokens[${SEEDPB}]} ${tokens[${CBI1}]} ${tokens[${CBI2}]})
+    done < <( tail -n +2 ${pp_in_complexes} | grep -v error )
+  } | format_table 44 > ${pp_tmp_prefix}/clustered
+  printf "assigning cluster ids done\n" | pplog 0
+
 
   mv ${pp_tmp_prefix}/clustered ${pp_out_prefix}_clustered
 )
-
+ 
 cluster_interfalces
 unset cluster_interfalces
