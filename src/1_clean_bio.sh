@@ -1,6 +1,7 @@
 # postprocessing of PDB bio files to obtain bio units
 
 clean_bio() {
+  set -ETeuo pipefail
   dst_dir=${pp_out_prefix}_pdbbio
   # already done?
   [ -d ${dst_dir} ] && { printf "using existing, cleaned PDB bio directory\n" | pplog 0 ; return 0; } || true
