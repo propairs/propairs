@@ -58,9 +58,11 @@ CREATE TABLE cluster_info (
     cl_med_dist float not NULL
 );
 -- import
+PRAGMA cache_size = -$((CFG_MAXMEM_KB));
 .mode csv
 .separator ' '
 .import ${pp_tmp_prefix}/interface_clusters cluster_info
+CREATE INDEX cluster_info_pdb_c1_c2_idx ON cluster_info(pdb,c1,c2);
 EOF
 )
   echo "${query}" | sqlite3 ${sqlite_db} | pplog 0
