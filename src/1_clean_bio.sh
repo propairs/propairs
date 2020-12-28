@@ -8,7 +8,7 @@ clean_bio() {
 
   mkdir -p ${pp_tmp_prefix}/pdb_bio_merged
   echo "cleaning bio with ${OMP_NUM_THREADS} CPUs and ${CFG_MAXMEM_KB} kB memory"
-  python ${PPROOT}/pdb-merge-bio/merge_bio_folder.py \
+  python3 ${PPROOT}/pdb-merge-bio/merge_bio_folder.py \
     --numthreads ${OMP_NUM_THREADS} \
     --maxmem $((CFG_MAXMEM_KB / OMP_NUM_THREADS )) \
     --src ${pp_in_pdbbio} \
