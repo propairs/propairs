@@ -102,7 +102,6 @@ config_file=${OUTPUT_DIR}/config.txt
 config_curr=$(cat << EOI
 CFG_TESTSET=${CFG_TESTSET}
 CFG_SNAPSHOT=${CFG_SNAPSHOT}
-CFG_VERBOSE=${CFG_VERBOSE}
 EOI
 )
 [ -f ${config_file} ] && source ${config_file} || echo "${config_curr}" > ${config_file}
