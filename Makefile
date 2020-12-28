@@ -1,6 +1,6 @@
 BASEDIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-BIOPYTHON_VERSION=1.65
+BIOPYTHON_VERSION=1.77
 
 all: 3rdparty
 	$(MAKE) -C xtal
@@ -21,16 +21,16 @@ distclean: clean
 	$(MAKE) -C xtal distclean
 	$(MAKE) -C 3rdparty clean
 
-.PHONY: pyenv
-pyenv:
+env/bin/activate:
+	pip3 install virtualenv
 	python3 -m virtualenv env
 
 .PHONY: pydeps
-pydeps: pyenv
+pydeps: env/bin/activate
 	bash -c "\
 		source env/bin/activate \
 	    && pip3 install numpy\
-			&& pip3 install biopython==1.77\
+			&& pip3 install biopython==$(BIOPYTHON_VERSION)\
 	"
 
 .PHONY: run_example
