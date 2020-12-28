@@ -6,7 +6,6 @@ _add: all
 modules := 
 
 include make_sqlite.mk
-include make_gnuparallel.mk
 
 all: $(addsuffix _build, $(modules))
 
