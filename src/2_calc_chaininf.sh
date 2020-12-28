@@ -12,7 +12,7 @@ _call_xtal() {
       ${pp_in_pdbcodes} \
       ${pp_tmp_prefix}/chunk_status_${op} \
       >> ${dst_fn}_tmp
-  } 2>&1 | pplog 1
+  } 2>&1 | pplog 0 | pplog 1
   mv ${dst_fn}_tmp ${dst_fn}
 }
 
