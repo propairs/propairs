@@ -39,3 +39,12 @@ function format_table() {
   } | column -t
 }
 export -f format_table
+
+
+get_pdb_header() {
+  local -r pdbpath=$1
+  shift
+  echo "$*" | while read pdb; do
+    head -n 1 $PDBDATADIR/${pdb}.pdb | cut -c 11-50 | sed "s/\  */ /g" | sed "s/\"/\\\\\"/g";
+  done
+}

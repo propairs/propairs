@@ -175,5 +175,11 @@ source ${PPROOT}/src/5_pair_partners.sh
 unset pp_in_clustered
 
 
+pp_out_prefix="${OUTPUT_DIR}/6a_www" \
+  pp_tmp_prefix="${OUTPUT_DIR}/tmp/6a" \
+  pp_in_pdb="${OUTPUT_DIR}/1b_pdb" \
+  pp_in_paired="${OUTPUT_DIR}/5a_paired" \
+  pp_in_clustered="${OUTPUT_DIR}/4a_clustered" \
+  make -j ${OMP_NUM_THREADS} -f ${PPROOT}/src/6_create_webdata.mk PPROOT=${PPROOT} | pplog 1
 
 printf "done\n" | pplog 0

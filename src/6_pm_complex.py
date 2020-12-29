@@ -103,7 +103,7 @@ u2chains = '+'.join(pchainsU2)
 
 def cofSelectIgnore(_cofign, fn):
    l = []
-   with open(fn, 'rb') as f:
+   with open(fn, 'r') as f:
       for line in f:
          line = line.rstrip()
          if line != "":
