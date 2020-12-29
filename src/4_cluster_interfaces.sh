@@ -1,4 +1,4 @@
-cluster_interfalces() (
+cluster_interfaces() (
   set -ETeuo pipefail
 
   declare -r sqlite_db=${pp_tmp_prefix}/interface_clusters.db
@@ -110,8 +110,8 @@ EOF
   printf "assigning cluster ids done\n" | pplog 0
 
 
-  mv ${pp_tmp_prefix}/clustered ${pp_out_prefix}_clustered
+  mv ${pp_tmp_prefix}/clustered ${dst_file}
 )
  
-cluster_interfalces
-unset cluster_interfalces
+cluster_interfaces
+unset cluster_interfaces
