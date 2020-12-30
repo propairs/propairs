@@ -102,9 +102,10 @@ config_file=${OUTPUT_DIR}/config.txt
 config_curr=$(cat << EOI
 CFG_TESTSET=${CFG_TESTSET}
 CFG_SNAPSHOT=${CFG_SNAPSHOT}
+CFG_SETID=$(date +%Y-%m-%d)$( [ ${CFG_TESTSET} -eq 0 ] || echo "test"  )
 EOI
 )
-[ -f ${config_file} ] && source ${config_file} || echo "${config_curr}" > ${config_file}
+[ -f ${config_file} ] && source ${config_file} || { echo "${config_curr}" > ${config_file} && source ${config_file}; }
 cat ${config_file} | pplog 1
 unset config_file
 
@@ -174,12 +175,12 @@ pp_in_clustered="${OUTPUT_DIR}/4a_clustered"
 source ${PPROOT}/src/5_pair_partners.sh
 unset pp_in_clustered
 
-
 pp_out_prefix="${OUTPUT_DIR}/6a_www" \
   pp_tmp_prefix="${OUTPUT_DIR}/tmp/6a" \
   pp_in_pdb="${OUTPUT_DIR}/1b_pdb" \
   pp_in_paired="${OUTPUT_DIR}/5a_paired" \
   pp_in_clustered="${OUTPUT_DIR}/4a_clustered" \
+  pp_in_setid="${CFG_SETID}" \
   make -j ${OMP_NUM_THREADS} -f ${PPROOT}/src/6_create_webdata.mk PPROOT=${PPROOT} | pplog 1
 
 printf "done\n" | pplog 0
