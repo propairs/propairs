@@ -2,16 +2,15 @@
 # write plain set
 write_set_plaintext() {
   set -ETeuo pipefail
-  source ${PPROOT}/src/helpers.sh
   local settype=$1
   local fn_in_pairs=$2
   local fn_in_clustered=$3
   local fn_out_gz=$4
   case ${settype} in 
-    "large_unpaired")
+    "large")
       cat ${fn_in_clustered} | gzip > ${fn_out_gz}
       ;;
-    "nonredundant_paired")
+    "paired_representative")
       {
         # use fn_in_clustered but filter for pairs
         head -n 1 ${fn_in_clustered}
@@ -25,7 +24,7 @@ write_set_plaintext() {
       } | gzip > ${fn_out_gz}
       ;;
     *)
-      printf "error: settype \"${settype}\"\n" | pplog 0
+      printf "error: settype \"${settype}\"\n" >&2
       exit 1
     ;;
   esac

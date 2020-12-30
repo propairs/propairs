@@ -234,7 +234,7 @@ get_pdb_prefix() {
   local INPUTCLUS=$1
   local INDEX1=$2
   read -a cols < <(grep "^${INDEX1} " ${INPUTCLUS} | head -n 1 )
-  echo "${cols[$SEEDPB-1]}_${cols[$CBI1-1]}_${cols[$CBI2-1]}"
+  echo "${cols[$SEEDPB-1]}_${cols[$CBI1-1]}-${cols[$CBI2-1]}_${index1}"
 }
 
 #-------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ write_complex_json() {
   # convert pngs to webp
   find ${dn_out_img}/ -name 'img_*_01.png' -exec mogrify -format webp -strip -interlace Plane -quality 95  {} \;
   # create preview 
-  convert -rotate -0 -resize x40 -gravity Center -crop 20x20+0+0 -strip  ${dn_out_img}/img_p0011_01.png ${dn_out_img}/preview.png
+  convert -rotate -0 -resize x40 -gravity Center -crop 20x20+0+0 -strip  ${dn_out_img}/img_p0011_01.png ${dn_out_img}/../preview.png
   # remove pymol png images
   find ${dn_out_img}/ -name 'img_*_01.png' -exec rm {} \;
 }
