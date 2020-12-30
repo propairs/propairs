@@ -11,7 +11,7 @@ pairs1 := $(foreach x,$(pairs), $(firstword $(subst _, ,$x)))
 dst_complex_info := $(patsubst %,$(pp_out_prefix)/info/%,$(pairs1))
 dst_complex_pdb  := $(patsubst %,$(pp_out_prefix)/info/%,$(pairs1))
 
-all: set_plaintext $(pp_out_prefix)/propairs_set_nonredundant_paired.json $(dst_complex_info)
+all: set_plaintext $(pp_out_prefix)/propairs_set_$(pp_in_setid)_nonredundant_paired.json $(dst_complex_info) $(pp_out_prefix)/set_descr.json
 	
 
 .PHONY: out_dir
@@ -44,13 +44,17 @@ $(pp_tmp_prefix)/$(xtal_cof_ignorelist): | tmp_dir
 $(pp_tmp_prefix)/$(xtal_cof_groups): | tmp_dir
 	cp ${PPROOT}/config/cof_groups.txt $@
 
-$(pp_out_prefix)/propairs_set_nonredundant_paired.json: | out_dir
+$(pp_out_prefix)/propairs_set_$(pp_in_setid)_nonredundant_paired.json: | out_dir
 	bash $(PPROOT)/src/6_www_helper.sh paired_json $(pp_in_paired) $(pp_in_clustered) $(pp_in_pdb) > $@_tmp
 	mv $@_tmp $@
 
 .PHONY: set_plaintext
-set_plaintext: $(pp_out_prefix)/propairs_set_large_unpaired.txt.gz $(pp_out_prefix)/propairs_set_nonredundant_paired.txt.gz
+set_plaintext: $(pp_out_prefix)/propairs_set_$(pp_in_setid)_large_unpaired.txt.gz $(pp_out_prefix)/propairs_set_$(pp_in_setid)_nonredundant_paired.txt.gz
 
-$(pp_out_prefix)/propairs_set_%.txt.gz: | out_dir
+$(pp_out_prefix)/propairs_set_$(pp_in_setid)_%.txt.gz: | out_dir
 	bash $(PPROOT)/src/6_www_helper.sh set_plaintext $* $(pp_in_paired) $(pp_in_clustered) $@_tmp
+	mv $@_tmp $@
+
+$(pp_out_prefix)/set_descr.json:
+	bash $(PPROOT)/src/6_www_helper.sh set_descr $@_tmp $(pp_in_setid) $(pp_in_paired) $(pp_in_clustered)
 	mv $@_tmp $@
