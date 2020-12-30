@@ -3,7 +3,6 @@
 write_set_plaintext() {
   set -ETeuo pipefail
   source ${PPROOT}/src/helpers.sh
-  echo $*
   local settype=$1
   local fn_in_pairs=$2
   local fn_in_clustered=$3

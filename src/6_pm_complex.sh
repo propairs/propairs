@@ -189,20 +189,20 @@ U2ROTMATRIX="[]"
 fi
 
 ### show stuff used by pymol
-echo ${PB}     # b PDB
-echo ${CB1}    # b1 chains
-echo ${CB2}    # b2 chains
-echo ${PU1}    # u1 PDB
-echo ${PU2-}    # u2 PDB
-echo ${CU1}    # u1 chains
-echo ${CU2-}    # u2 chains
-echo "COFAll" ${LISTBALL} # all cofactors
-echo "COFB1 " ${LISTB1}   # b1 cofactors
-echo "COFB2 " ${LISTB2}   # b2 cofactors
-echo "COFU1 " ${LISTU1}   # u1 cofactors
-echo "COFU2 " ${LISTU2}   # u2 cofactors
-echo ${U1ROTMATRIX} 
-echo ${U2ROTMATRIX}
+# echo ${PB}     # b PDB
+# echo ${CB1}    # b1 chains
+# echo ${CB2}    # b2 chains
+# echo ${PU1}    # u1 PDB
+# echo ${PU2-}    # u2 PDB
+# echo ${CU1}    # u1 chains
+# echo ${CU2-}    # u2 chains
+# echo "COFAll" ${LISTBALL} # all cofactors
+# echo "COFB1 " ${LISTB1}   # b1 cofactors
+# echo "COFB2 " ${LISTB2}   # b2 cofactors
+# echo "COFU1 " ${LISTU1}   # u1 cofactors
+# echo "COFU2 " ${LISTU2}   # u2 cofactors
+# echo ${U1ROTMATRIX} 
+# echo ${U2ROTMATRIX}
 
 
 ### create and fill temporary script file for pymol

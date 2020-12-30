@@ -229,14 +229,25 @@ _writeJsonData() {
 
 #-------------------------------------------------------------------------------
 
+get_pdb_prefix() {
+  set -ETeuo pipefail
+  local INPUTCLUS=$1
+  local INDEX1=$2
+  read -a cols < <(grep "^${INDEX1} " ${INPUTCLUS} | head -n 1 )
+  echo "${cols[$SEEDPB-1]}_${cols[$CBI1-1]}_${cols[$CBI2-1]}"
+}
+
+#-------------------------------------------------------------------------------
+
 write_complex_json() {
   set -ETeuo pipefail
   source ${PPROOT}/config/columns_def.sh
   local pair=$1
   local fn_in_clustered=$2
   local dn_in_pdbs=$3
-  local dn_out_detail=$4
+  local fn_out_json=$4
   local dn_out_pdb=$5
+  local dn_out_img=$6
   IFS="_"
   read -a sidx < <(echo "$pair")
   unset IFS
@@ -244,16 +255,16 @@ write_complex_json() {
   index2=${sidx[1]-}
   echo "writing pp-complex info for $index1"
   # write json details
-  _writeJsonData ${fn_in_clustered} ${dn_in_pdbs} "$index1" "$index2" > ${dn_out_detail}/complex.json
+  _writeJsonData ${fn_in_clustered} ${dn_in_pdbs} "$index1" "$index2" > ${fn_out_json}
   # write pdb and images
   args=`${PPROOT}/src/6_select_aligned.sh ${fn_in_clustered} ${index1} ${index2}`
-  ${PPROOT}/src/6_pm_complex.sh -p ${dn_in_pdbs} -o ${dn_out_pdb}/${index1} -w 800 -f ${dn_out_detail}/img $args
+  ${PPROOT}/src/6_pm_complex.sh -p ${dn_in_pdbs} -o ${dn_out_pdb}/$(get_pdb_prefix ${fn_in_clustered} ${index1}) -w 800 -f ${dn_out_img}/img $args
   # compress pdb files with gz
-  find ${dn_out_pdb}/ -name "${index1}_*.pdb" -exec gzip {} \;
+  find ${dn_out_pdb}/ -name "*.pdb" -exec gzip {} \;
   # convert pngs to webp
-  find ${dn_out_detail}/ -name 'img_*_01.png' -exec mogrify -format webp -strip -interlace Plane -quality 95  {} \;
+  find ${dn_out_img}/ -name 'img_*_01.png' -exec mogrify -format webp -strip -interlace Plane -quality 95  {} \;
   # create preview 
-  convert -rotate -0 -resize x40 -gravity Center -crop 20x20+0+0 -strip  ${dn_out_detail}/img_p0011_01.png ${dn_out_detail}/preview.png
+  convert -rotate -0 -resize x40 -gravity Center -crop 20x20+0+0 -strip  ${dn_out_img}/img_p0011_01.png ${dn_out_img}/preview.png
   # remove pymol png images
-  find ${dn_out_detail}/ -name 'img_*_01.png' -exec rm {} \;
+  find ${dn_out_img}/ -name 'img_*_01.png' -exec rm {} \;
 }

@@ -26,9 +26,16 @@ tmp_dir:
 $(pp_out_prefix)/info/%: $(pp_tmp_prefix)/$(xtal_cof_groups) $(pp_tmp_prefix)/$(xtal_cof_ignorelist)  | out_dir
 	$(RM) -r $@_tmp
 	mkdir -p $@_tmp
+	mkdir -p $@_tmp/pdb
+	mkdir -p $@_tmp/img
 	XTAL_COF_GROUPS=$(pp_tmp_prefix)/$(xtal_cof_groups) \
-		XTAL_COF_IGNORELIST=$(pp_tmp_prefix)/$(xtal_cof_ignorelist) \
-		bash $(PPROOT)/src/6_www_helper.sh complex_json $(filter $*_%, $(pairs)) $(pp_in_clustered) $(pp_in_pdb) $@_tmp/ $(pp_out_prefix)/pdb
+	XTAL_COF_IGNORELIST=$(pp_tmp_prefix)/$(xtal_cof_ignorelist) \
+		bash $(PPROOT)/src/6_www_helper.sh complex_json \
+			$(filter $*_%, $(pairs)) \
+			$(pp_in_clustered) $(pp_in_pdb) \
+			$@_tmp/complex.json \
+			$@_tmp/pdb/ \
+			$@_tmp/img/
 	mv $@_tmp $@
 
 $(pp_tmp_prefix)/$(xtal_cof_ignorelist): | tmp_dir

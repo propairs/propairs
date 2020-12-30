@@ -214,6 +214,12 @@ cmd.zoom("sb1 or sb2", -10, 0, 1)
 if ppdbidB=="1bgx1":
    cmd.turn("y", 192)
 
+# PDB out
+if cfgPdbPrefix != "":
+   cmd.save(cfgPdbPrefix + "_b1.pdb", "sb1 or cofb1 or cofbo1")
+   cmd.save(cfgPdbPrefix + "_b2.pdb", "sb2 or cofb2 or cofbo2")
+   cmd.save(cfgPdbPrefix + "_u1.pdb", "su1 or cofu1 or cofuo1") 
+   cmd.save(cfgPdbPrefix + "_u2.pdb", "su2 or cofu2 or cofuo2")
 
 # set number of rotations
 numsteps = 1
@@ -321,15 +327,3 @@ for i in range(1, numsteps+1):
    u2Show()
    ray("1111_" + str(i).zfill(2))
    cmd.turn("y", stepangle)
-
-
-
-# PDB out
-if cfgPdbPrefix != "":
-   cmd.save(cfgPdbPrefix + "_b1.pdb", "sb1 or cofb1 or cofbo1")
-   cmd.save(cfgPdbPrefix + "_b2.pdb", "sb2 or cofb2 or cofbo2")
-   cmd.save(cfgPdbPrefix + "_u1.pdb", "su1 or cofu1 or cofuo1") 
-   cmd.save(cfgPdbPrefix + "_u2.pdb", "su2 or cofu2 or cofuo2")
-
-
-
