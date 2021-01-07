@@ -74,8 +74,8 @@ _download_pdbbio() {
 download_pdbs() {
   PDBSNAP_HOST=snapshotrsync.rcsb.org
   PDBSNAP_PORT=8730
-  # PDBSNAP_HOST=pdbjsnap.protein.osaka-u.ac.jp
-  # PDBSNAP_PORT=873
+  PDBSNAP_HOST=pdbjsnap.protein.osaka-u.ac.jp
+  PDBSNAP_PORT=873
   mkdir -p ${pp_tmp_prefix}
   cd ${pp_tmp_prefix}
   _download_pdb
