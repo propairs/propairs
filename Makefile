@@ -37,3 +37,6 @@ pydeps: env/bin/activate
 run_example: all pydeps
 	mkdir -p $(BASEDIR)/ppdata
 	$(BASEDIR)/bin/pp_env $(BASEDIR)/ppdata
+
+env_conda:
+	$(MAKE) -C 3rdparty -f env_conda.mk

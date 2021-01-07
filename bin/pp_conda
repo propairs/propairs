@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -ETeuo pipefail
+
+declare BASEDIR; BASEDIR="$( cd "$( dirname $0 )/.." && pwd )"; readonly BASEDIR
+
+# install deps
+make -C ${BASEDIR} env_conda
+
+export PATH=${BASEDIR}/3rdparty/sqlite/bin/:${BASEDIR}/3rdparty/sif/:${BASEDIR}/3rdparty/conda/bin:${PATH}
+
+${BASEDIR}/bin/propairs $*
